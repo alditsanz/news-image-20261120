@@ -1112,21 +1112,14 @@ draw_text(W - M, 22, "31 STORIES · 7 REGIONS · EVERY ONE DATED "
           align='r')
 fill_rect(M, 28, CW, 1.6, INK)
 
-# Masthead: red calendar box + serif display line. The box is tall
-# enough that NOV, the 20 and FRI · 2026 each sit clear of the next:
-# NOV baseline 55 (ink 41-55), 20 at size 48 baseline 95 (ink 60-95),
-# FRI baseline 110 (ink 100-110), box 34-118 - gaps >= 4.5 px and
-# padding >= 7 px on every side, nothing touching.
-fill_rect(M, 34, 94, 84, RED)
-draw_text(M + 47, 55, "NOV", 19, WHITE, 'SANS_X', tracking=2.0,
-          align='c')
-draw_text(M + 47, 95, "20", 48, WHITE, 'SANS_X', tracking=1.0,
-          align='c')
-draw_text(M + 47, 110, "FRI · 2026", 13, WHITE, 'SANS_X', tracking=0.6,
-          align='c')
-_MS = fit_size("Friday 20 November 2026", 96, 'SERIF_L', W - 132 - M - 4,
-               0.2)
-draw_text(132, 100, "Friday 20 November 2026", _MS, INK, 'SERIF_L',
+# Masthead: the date is the hero - full content width, the largest
+# serif type on the page. Round 15 drops the red calendar box, so
+# the date is no longer width-capped by it: fitted against CW it
+# lands ~82 (cap top ~41 in the 34-118 band, descenders clear of
+# the rule at 121 by ~4 px). The masthead line above already
+# carries the red square and the 31-stories tally.
+_MS = fit_size("Friday 20 November 2026", 96, 'SERIF_L', CW, 0.2)
+draw_text(M, 100, "Friday 20 November 2026", _MS, INK, 'SERIF_L',
           tracking=0.2)
 fill_rect(M, 121, CW, 1.4, INK)
 
@@ -1178,20 +1171,28 @@ for _i, (_num, _c1, _c2) in enumerate(FIGS):
     draw_text(_cx, 222.5, _c2, 11.5, DARK, 'SANS', tracking=0.3,
               align='c')
 
-# Region bar: honest counts, summing to 31
+# Region bar: honest counts, summing to 31 - and the total is
+# shown, not just implied: the WORLD segment narrows to make room
+# for a red "= 31" cell at the right end, and 2 px paper dividers
+# split the segments so the bar reads as a tally. Segment widths
+# sum to 979 with the total cell, as before.
 REGIONS = [
     ("EUROPE 6", 162, BLUE), ("ASIA 10", 201, RED),
     ("AMERICAS 2", 123, TEAL), ("AFRICA 1", 77, GOLD),
     ("MIDDLE EAST 3", 143, BROWN), ("OCEANIA 1", 83, GREEN),
-    ("WORLD 8", 190, INK),
+    ("WORLD 8", 130, INK), ("= 31", 60, RED),
 ]
 _rx = M
+_bounds = []
 for _label, _w, _c in REGIONS:
     fill_rect(_rx, 228, _w, 20, _c)
     draw_text(_rx + _w / 2.0, 241.5, _label,
               fit_size(_label, 14, 'SANS_B', _w - 6, 0.4, 11.5), WHITE,
               'SANS_B', tracking=0.4, align='c')
     _rx += _w
+    _bounds.append(_rx)
+for _bx in _bounds[:-1]:
+    fill_rect(_bx - 1, 228, 2, 20, PAPER)
 
 # ------------------------------------------------------------- hero scenes
 def _stars(bx, by, bw, bh, n, col):
@@ -1266,13 +1267,14 @@ def scene_kyiv(bx, by, bw, bh):
         xx = bx + 70 + sx * (bw - 140) / 4.0
         thick_line(xx, deck - 25 + abs(sx - 2) * 3.4, xx, deck, 0.9,
                    (120, 130, 150))
-    # missile trails and bursts
+    # missile trails and bursts (round 15: bursts sit lower in the
+    # taller sky - 52/44 -> 66/58, keeping their ~0.68 height ratio)
     for (cx, cy, rx, ry, a0, a1) in [
             (bx + 60, by - 66, 120, 108, 55, 96),
             (bx + 210, by - 90, 130, 120, 62, 100),
             (bx + 300, by - 40, 90, 84, 118, 148)]:
         polyline(arc_pts(cx, cy, rx, ry, a0, a1), 1.7, (243, 164, 62))
-    for (ex, ey) in [(bx + 128, by + 52), (bx + 252, by + 44)]:
+    for (ex, ey) in [(bx + 128, by + 66), (bx + 252, by + 58)]:
         fill_circle(ex, ey, 3.2, (250, 120, 50))
         for a in range(0, 360, 60):
             ar = math.radians(a)
@@ -1306,7 +1308,8 @@ def scene_akvan(bx, by, bw, bh):
                      1.7, GREEN if fi % 2 == 0 else (88, 132, 74))
     for i in range(14):
         rx = bx + 190 + (i * 23.7) % 110
-        ry = by + 26 + (i * 13.1) % 34
+        ry = by + 26 + (i * 13.1) % 52  # round 15: rain fills the
+        # taller band (was % 34 in the 76 band)
         thick_line(rx, ry, rx - 3, ry + 7, 1.0, (86, 116, 146))
 
 
@@ -1317,11 +1320,14 @@ def scene_markets(bx, by, bw, bh):
     # fights the arrow; the yen coin stays at top right, clear of
     # the arrow's path and of its head.
     vgrad(bx, by, bw, bh, (40, 46, 64), (21, 25, 37))
-    _grid(bx, by, 4, bw - 4, 27, 74, 31, 11.75, (56, 62, 78))
-    zig_arrow([(bx + 12, by + 31), (bx + 64, by + 38),
-               (bx + 90, by + 32.5), (bx + 142, by + 46),
-               (bx + 168, by + 40), (bx + 222, by + 55),
-               (bx + 246, by + 64)], 5.0, RED, 15, 8)
+    _grid(bx, by, 4, bw - 4, 27, 94, 31, 11.75, (56, 62, 78))
+    # Round 15: the zigzag is re-derived for the taller band - the
+    # old y range 31..64 maps onto 36..88, so the plunge keeps its
+    # shape and the head stays clear of the yen coin at top right.
+    zig_arrow([(bx + 12, by + 36), (bx + 64, by + 47),
+               (bx + 90, by + 38), (bx + 142, by + 60),
+               (bx + 168, by + 50), (bx + 222, by + 74),
+               (bx + 246, by + 88)], 5.0, RED, 15, 8)
     # yen coin - concentric gradient discs, lit from the top
     cx, cy = bx + bw - 40, by + 34
     grad_circle(cx, cy, 12, (206, 160, 54), (156, 114, 30))
@@ -1383,35 +1389,38 @@ def hero(x, y, w, h, scene, label, kicker, band_col, region, rcol,
          headline, standfirst, table=None):
     fill_rect(x, y, w, h, PANEL)
     outline_rect(x, y, w, h, 1.1, RULE)
-    bx, by, bw, bh = x + 1, y + 1, w - 2, 76
+    bx, by, bw, bh = x + 1, y + 1, w - 2, 98
     scene(bx, by, bw, bh)
     label_band(bx, by, bw, 24, label, kicker, band_col, 21, table)
-    draw_region(x + 9, y + 92, region, w - 18, size=14.5, floor=12.5,
+    draw_region(x + 9, y + 113, region, w - 18, size=14.5, floor=12.5,
                 color=rcol, tracking=0.9)
-    # Shared hero rhythm: headline baselines y+119 / y+153 (pitch 34,
-    # 1.6x the Playfair cap height - more open than the model's
-    # 1.27x), standfirst always starts at y+174 so all three heroes
-    # share identical text geometry.
-    draw_wrapped(x + 9, y + 119, headline, 30, INK, 'SERIF',
-                 w - 18, 34)
-    draw_wrapped(x + 9, y + 174, standfirst, 14, INK, 'SANS', w - 18,
-                 16.5)
+    # Round 15: the art band grows 76 -> 98 (visible strip 52 -> 74,
+    # +42%) and the text stack is re-derived to pay for it inside a
+    # 226 panel - kicker y+113 (scene ends y+99; kickers are all
+    # caps, no descenders, so the headline cap top at ~116.5 clears
+    # it), headline baselines y+138 / y+170 (pitch 32), standfirst
+    # y+191 (pitch 15.5, two lines to ~206.5, ~16 clear of the
+    # panel foot). All three heroes share identical text geometry.
+    draw_wrapped(x + 9, y + 138, headline, 30, INK, 'SERIF',
+                 w - 18, 32)
+    draw_wrapped(x + 9, y + 191, standfirst, 14, INK, 'SANS', w - 18,
+                 15.5)
 
 
 HY = 254
 HW = (CW - 20) / 3.0
-hero(M, HY, HW, 214, scene_kyiv, "KYIV", "3 BRIDGES HIT", NAVY,
+hero(M, HY, HW, 226, scene_kyiv, "KYIV", "3 BRIDGES HIT", NAVY,
      "1 · EUROPE · WAR · REUTERS/BBC · C", RED,
      "Russian missiles hit three Kyiv bridges",
      "Overnight barrage of ~110 missiles and 400 drones killed at "
      "least 8 people; power and water cut in capital.")
-hero(M + HW + 10, HY, HW, 214, scene_akvan, "CYCLONE AKVAN",
+hero(M + HW + 10, HY, HW, 226, scene_akvan, "CYCLONE AKVAN",
      "LANDFALL · 07:30", RED,
      "2 · ASIA · WEATHER · IMD · C", TEAL,
      "Cyclone Akvan comes ashore in Odisha",
      "Winds 70-80 km/h, gusting to 90, crossed near Gopalpur after "
      "370,000 moved to shelters. No deaths reported.")
-hero(M + 2 * HW + 20, HY, HW, 214, scene_markets, "AI SELL-OFF",
+hero(M + 2 * HW + 20, HY, HW, 226, scene_markets, "AI SELL-OFF",
      "", NAVY,
      "3 · WORLD · MARKETS · AP · C", BLUE,
      "AI sell-off sinks Asia, then Wall Street",
@@ -1721,7 +1730,14 @@ def small_panel(x, y, w, h, scene, label, band_col, region, headline,
                  bpitch)
 
 
-PY1, PY2, PH, PH2 = 472, 624, 144, 136
+# Round 15: heroes grow 214 -> 226 (+12), paid for by tighter
+# gutters - row gaps 8 -> 4, bottom titles 780 -> 784, map
+# 136 -> 124 tall. Row heights and all text geometry inside the
+# mid panels are unchanged. (First attempt put the titles at 776
+# and the Mercury body ink overlapped them - the binding clearance
+# is the row-2 body ink, not the panel edge: titles must sit at
+# PY2 + 151 or lower.)
+PY1, PY2, PH, PH2 = 484, 632, 144, 136
 PW = (CW - 32) / 5.0
 
 
@@ -1804,12 +1820,12 @@ small_panel(_px(4), PY2, PW, PH2, s_cricket, "PHILLIPS: 118", GREEN,
             hfont='SERIF_L')
 
 # --------------------------------------------------------- bottom section
-draw_text(M, 780, "WHERE IT HAPPENED", 19, INK, 'SANS_X', tracking=0.6)
-draw_text(352, 780, "ALSO ON FRIDAY 20 NOVEMBER — 18 MORE STORIES", 19,
+draw_text(M, 784, "WHERE IT HAPPENED", 19, INK, 'SANS_X', tracking=0.6)
+draw_text(352, 784, "ALSO ON FRIDAY 20 NOVEMBER — 18 MORE STORIES", 19,
           INK, 'SANS_X', tracking=0.5)
-fill_rect(M, 786, CW, 1.0, RULE)
+fill_rect(M, 790, CW, 1.0, RULE)
 
-MAPX, MAPY, MAPW, MAPH = M, 790, 308, 136
+MAPX, MAPY, MAPW, MAPH = M, 794, 308, 124
 fill_rect(MAPX, MAPY, MAPW, MAPH, (238, 232, 214))
 outline_rect(MAPX, MAPY, MAPW, MAPH, 1.0, RULE)
 # Land mask rasterized offline from the johan/world.geo.json
@@ -1980,7 +1996,7 @@ ALSO = [
 ]
 for _i, (_n, _txt, _tag) in enumerate(ALSO):
     _colx = 352 if _i < 9 else 684
-    _yy = 800 + (_i % 9) * 17
+    _yy = 804 + (_i % 9) * 17
     # One pass per glyph: the number in red, the rest in ink beside it.
     _num = str(_n)
     draw_text(_colx, _yy, _num, 13.5, RED, 'SANS_B', tracking=0.3)
@@ -2001,7 +2017,7 @@ draw_text(_hx + 5, 954, "CONFIRMED = two or more outlets or official "
 # first line's ink sits ~8 px below the top border (baselines 981/995
 # in a box spanning 962-1007) and the last line's descenders end
 # ~9 px above the bottom border. Room for this comes from the footer
-# stack above: ALSO pitch 17 from y 800 and a shorter map.
+# stack above: ALSO pitch 17 from y 804 and a shorter map.
 outline_rect(M, 962, CW, 45, 1.3, RED)
 _DC_SIZE = 13
 _DC_LABEL = "DATE CHECK — "
