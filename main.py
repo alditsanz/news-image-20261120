@@ -5,8 +5,9 @@ A one-page newspaper front sheet summing up one day of world news.
 Everything is drawn as flat vector geometry in code: filled polygons,
 circles and thick strokes for the illustrations. Text is set in two
 real typefaces - Playfair Display (Bold for the masthead, headlines
-and figure numerals; Italic for the dek) and Open Sans (Regular, Bold
-and ExtraBold for bodies, labels and bands) - whose glyph outline
+and headlines; Italic for the dek) and Open Sans (Regular, Bold
+and ExtraBold for bodies, labels, bands and figure numerals) - whose
+glyph outline
 contours and advance widths were extracted from the font files at
 build time and are embedded below as data. The rasterizer is original
 code: contours are flattened and scanline-filled under the nonzero
@@ -1032,12 +1033,17 @@ fill_rect(M, 121, CW, 1.4, INK)
 _DEK = ("Russian missiles hit Kyiv's bridges · Cyclone Akvan strikes "
         "India · AI sell-off sinks world markets · Bitcoin breaks "
         "$60,000")
-draw_text(M, 140, _DEK, fit_size(_DEK, 24, 'SERIF_I', CW, 0.1), RED,
+draw_text(M, 142, _DEK, fit_size(_DEK, 24, 'SERIF_I', CW, 0.1), RED,
           'SERIF_I', tracking=0.1)
 fill_rect(M, 148, CW, 1.0, INK)
 
-# The day in figures: six big numbers, red dividers
-draw_text(M, 160, "THE DAY IN FIGURES", 15, INK, 'SANS_X',
+# The day in figures: six big numbers, red dividers. Vertical rhythm
+# is set so every element clears its neighbours by >= 3 px: label
+# baseline 163 (ink 152-163) under the rule ending at 149, numeral
+# baseline 193 (ink 166-198 incl. comma tails), caption baselines
+# 209.5 / 222.5 (cap tops 201.3+) above the region bar at 228. The
+# dividers start at 168, below the label, so they never cross it.
+draw_text(M, 163, "THE DAY IN FIGURES", 15, INK, 'SANS_X',
           tracking=1.2)
 FIGS = [
     ("3", "bridges hit", "in Kyiv"),
@@ -1051,26 +1057,26 @@ _colw = CW / 6.0
 for _i, (_num, _c1, _c2) in enumerate(FIGS):
     _x = M + _i * _colw
     if _i:
-        fill_rect(_x - 9, 154, 1.6, 66, RED)
+        fill_rect(_x - 9, 168, 1.6, 55, RED)
     # Numerals in Open Sans ExtraBold (the model's figure treatment:
-    # a heavy grotesque sans), baseline 190 - ink 163-190, clear of
-    # the header baseline above and ~6 px of air over the captions.
-    draw_text(_x, 190, _num, fit_size(_num, 37, 'SANS_X', _colw - 2,
+    # a heavy grotesque sans), baseline 193 - ink 166-193, comma
+    # tails to ~196, clear of the label above and the captions below.
+    draw_text(_x, 193, _num, fit_size(_num, 37, 'SANS_X', _colw - 2,
               0.2, 30), INK, 'SANS_X', tracking=0.2)
-    draw_text(_x, 205, _c1, 11.5, DARK, 'SANS', tracking=0.3)
-    draw_text(_x, 219, _c2, 11.5, DARK, 'SANS', tracking=0.3)
+    draw_text(_x, 209.5, _c1, 11.5, DARK, 'SANS', tracking=0.3)
+    draw_text(_x, 222.5, _c2, 11.5, DARK, 'SANS', tracking=0.3)
 
 # Region bar: honest counts, summing to 31
 REGIONS = [
-    ("EUROPE 6", 162, BLUE), ("ASIA 9", 201, RED),
-    ("AMERICAS 3", 123, TEAL), ("AFRICA 1", 77, GOLD),
+    ("EUROPE 6", 162, BLUE), ("ASIA 10", 201, RED),
+    ("AMERICAS 2", 123, TEAL), ("AFRICA 1", 77, GOLD),
     ("MIDDLE EAST 3", 143, BROWN), ("OCEANIA 1", 83, GREEN),
     ("WORLD 8", 190, INK),
 ]
 _rx = M
 for _label, _w, _c in REGIONS:
-    fill_rect(_rx, 224, _w, 20, _c)
-    draw_text(_rx + _w / 2.0, 237.5, _label,
+    fill_rect(_rx, 228, _w, 20, _c)
+    draw_text(_rx + _w / 2.0, 241.5, _label,
               fit_size(_label, 14, 'SANS_B', _w - 6, 0.4, 11.5), WHITE,
               'SANS_B', tracking=0.4, align='c')
     _rx += _w
@@ -1101,8 +1107,8 @@ def scene_kyiv(bx, by, bw, bh):
     fill_rect(bx + 8, deck, bw - 16, 3.4, (14, 16, 28))
     for tx in (bx + 70, bx + bw - 70):
         fill_rect(tx, deck - 26, 3.4, 26, (14, 16, 28))
-    polyline(arc_pts(bx + 70, deck - 40, bw / 2 - 70, 15, 180, 360), 1.3,
-             (120, 130, 150))
+    polyline(arc_pts(bx + bw / 2, deck - 40, bw / 2 - 70, 15, 180, 360),
+             1.3, (120, 130, 150))
     for sx in range(0, 5):
         xx = bx + 70 + sx * (bw - 140) / 4.0
         thick_line(xx, deck - 25 + abs(sx - 2) * 3.4, xx, deck, 0.9,
@@ -1111,7 +1117,7 @@ def scene_kyiv(bx, by, bw, bh):
     for (cx, cy, rx, ry, a0, a1) in [
             (bx + 60, by - 66, 120, 108, 55, 96),
             (bx + 210, by - 90, 130, 120, 62, 100),
-            (bx + 300, by - 40, 90, 84, 120, 168)]:
+            (bx + 300, by - 40, 90, 84, 118, 148)]:
         polyline(arc_pts(cx, cy, rx, ry, a0, a1), 1.7, (243, 164, 62))
     for (ex, ey) in [(bx + 128, by + 52), (bx + 252, by + 44)]:
         fill_circle(ex, ey, 3.2, (250, 120, 50))
@@ -1190,15 +1196,19 @@ def hero(x, y, w, h, scene, label, kicker, band_col, region, rcol,
     bx, by, bw, bh = x + 1, y + 1, w - 2, 76
     scene(bx, by, bw, bh)
     label_band(bx, by, bw, 24, label, kicker, band_col, 21)
-    draw_region(x + 9, y + 93, region, w - 18, size=14.5, floor=12.5,
+    draw_region(x + 9, y + 92, region, w - 18, size=14.5, floor=12.5,
                 color=rcol, tracking=0.9)
-    hend = draw_wrapped(x + 9, y + 119, headline, 30, INK, 'SERIF',
-                        w - 18, 33)
-    draw_wrapped(x + 9, hend + 21, standfirst, 14, INK, 'SANS', w - 18,
+    # Shared hero rhythm: headline baselines y+119 / y+153 (pitch 34,
+    # 1.6x the Playfair cap height - more open than the model's
+    # 1.27x), standfirst always starts at y+174 so all three heroes
+    # share identical text geometry.
+    draw_wrapped(x + 9, y + 119, headline, 30, INK, 'SERIF',
+                 w - 18, 34)
+    draw_wrapped(x + 9, y + 174, standfirst, 14, INK, 'SANS', w - 18,
                  16.5)
 
 
-HY = 250
+HY = 254
 HW = (CW - 20) / 3.0
 hero(M, HY, HW, 214, scene_kyiv, "KYIV", "OVERNIGHT", NAVY,
      "1 · EUROPE · WAR · REUTERS/BBC · C", RED,
@@ -1220,139 +1230,147 @@ hero(M + 2 * HW + 20, HY, HW, 214, scene_markets, "AI SELL-OFF",
 
 # ------------------------------------------------------------ panel scenes
 def s_btc(bx, by, bw, bh):
+    # One bold subject: a big coin beside a falling chart line, both
+    # centred in the strip below the label band (by+17..by+36).
     fill_rect(bx, by, bw, bh, (26, 25, 30))
-    fill_rect(bx, by + bh - 7, bw, 7, (54, 51, 58))
-    polyline([(bx + 120, by + bh - 7), (bx + 132, by + bh - 3),
-              (bx + 142, by + bh - 7), (bx + 152, by + bh - 4)], 1.2,
-             (150, 60, 50))
-    cx, cy = bx + 36, by + bh - 17
-    fill_circle(cx, cy, 10.5, GOLD)
-    fill_circle(cx, cy, 8.2, (200, 154, 46))
-    draw_text(cx, cy + 6, "B", 17, (84, 60, 8), 'SANS_B', align='c')
-    thick_line(cx - 3.2, cy - 9.5, cx - 3.2, cy + 9.5, 1.4, (84, 60, 8))
-    pts = [(bx + 74, by + 17), (bx + 108, by + 21), (bx + 138, by + 26),
-           (bx + 170, by + 32)]
-    polyline(pts, 2.3, RED)
-    fill_poly([(pts[-1][0], pts[-1][1]), (pts[-1][0] - 10, pts[-1][1] - 3),
-               (pts[-1][0] - 3, pts[-1][1] + 8)], RED)
+    cx, cy = bx + 30, by + 26
+    fill_circle(cx, cy, 8.5, GOLD)
+    fill_circle(cx, cy, 6.6, (200, 154, 46))
+    draw_text(cx, cy + 4.7, "B", 13, (84, 60, 8), 'SANS_B', align='c')
+    thick_line(cx - 2.6, cy - 7.6, cx - 2.6, cy + 7.6, 1.3, (84, 60, 8))
+    pts = [(bx + 58, by + 19), (bx + 92, by + 22.5), (bx + 124, by + 26),
+           (bx + 160, by + 31)]
+    polyline(pts, 2.6, RED)
+    fill_poly([(bx + 160, by + 31), (bx + 150, by + 28),
+               (bx + 156, by + 35.5)], RED)
 
 
 def s_cop(bx, by, bw, bh):
+    # One bold subject: a single large globe, centred in the strip.
     fill_rect(bx, by, bw, bh, (206, 224, 232))
-    fill_circle(bx + 38, by + 25, 11.5, BLUE)
-    for (ox, oy, r) in [(-4, -3, 4.4), (5, 2, 5.2), (-2, 6, 3.6)]:
-        fill_circle(bx + 38 + ox, by + 25 + oy, r, GREEN)
-    fill_rect(bx + 108, by + 27, 34, 9, (92, 92, 98))
-    fill_rect(bx + 114, by + 19, 5, 8, (92, 92, 98))
-    fill_circle(bx + 116, by + 15, 3.4, (168, 172, 176))
-    fill_circle(bx + 121, by + 12, 4.4, (178, 182, 186))
-    tx = bx + 164
-    fill_rect(tx, by + 15, 5.5, 17, WHITE)
-    fill_rect(tx + 1.4, by + 23, 2.7, 9, RED)
-    fill_circle(tx + 2.7, by + 33.5, 3.8, RED)
+    cx, cy = bx + bw / 2.0, by + 26.5
+    fill_ellipse(cx, by + 34.7, 17, 1.1, (168, 188, 200))
+    fill_circle(cx, cy, 9.5, BLUE)
+    fill_ellipse(cx - 3.6, cy - 2.6, 4.2, 3.0, GREEN)
+    fill_ellipse(cx + 3.8, cy + 2.2, 4.6, 3.2, GREEN)
+    fill_ellipse(cx - 0.6, cy + 5.6, 3.0, 2.0, GREEN)
+    fill_ellipse(cx + 0.5, cy - 7.6, 4.2, 1.7, WHITE)
 
 
 def s_ukeu(bx, by, bw, bh):
+    # One bold subject: the two flags, enlarged, side by side.
     fill_rect(bx, by, bw, bh, TINT)
-    fill_rect(bx + 12, by + 16, 46, 18, BLUE)
-    polyline([(bx + 12, by + 16), (bx + 58, by + 34)], 1.6, WHITE)
-    polyline([(bx + 12, by + 34), (bx + 58, by + 16)], 1.6, WHITE)
-    fill_rect(bx + 31, by + 16, 8, 18, RED)
-    fill_rect(bx + 12, by + 22.5, 46, 5, RED)
-    fill_rect(bx + 128, by + 16, 46, 18, BLUE)
-    for a in range(0, 360, 60):
+    fill_rect(bx + 16, by + 15.5, 54, 19, BLUE)
+    polyline([(bx + 16, by + 15.5), (bx + 70, by + 34.5)], 2.4, WHITE)
+    polyline([(bx + 16, by + 34.5), (bx + 70, by + 15.5)], 2.4, WHITE)
+    fill_rect(bx + 38.5, by + 15.5, 9, 19, RED)
+    fill_rect(bx + 16, by + 22, 54, 6, RED)
+    fill_rect(bx + 118, by + 15.5, 54, 19, BLUE)
+    for a in range(0, 360, 45):
         ar = math.radians(a)
-        fill_circle(bx + 151 + 6.4 * math.cos(ar), by + 25 + 6.4 * math.sin(ar),
-                    1.7, GOLD)
-    fill_circle(bx + 151, by + 25, 1.7, GOLD)
-    fill_rect(bx + 72, by + 25, 36, 11, BROWN)
-    thick_line(bx + 72, by + 30.5, bx + 108, by + 30.5, 1.2, (96, 64, 38))
-    thick_line(bx + 90, by + 25, bx + 90, by + 36, 1.2, (96, 64, 38))
+        fill_circle(bx + 145 + 6.6 * math.cos(ar),
+                    by + 25 + 6.6 * math.sin(ar), 2.1, GOLD)
+    fill_circle(bx + 145, by + 25, 2.1, GOLD)
 
 
 def s_icj(bx, by, bw, bh):
+    # One bold subject: a courthouse silhouette - pediment, four
+    # heavy columns and a base step, all in one dark ink tone so it
+    # reads instantly against the pale ground.
     fill_rect(bx, by, bw, bh, (233, 227, 211))
-    fill_poly([(bx + 18, by + 21), (bx + 94, by + 13), (bx + 170, by + 21)],
-              (96, 88, 74))
+    ink = (74, 66, 56)
+    fill_poly([(bx + 44, by + 21.5), (bx + 94, by + 15), (bx + 144, by + 21.5)],
+              ink)
+    fill_rect(bx + 40, by + 21.5, 108, 3, ink)
     for i in range(4):
-        fill_rect(bx + 30 + i * 34, by + 22, 9, 11, (216, 208, 190))
-    fill_rect(bx + 22, by + 33, 144, 3, (96, 88, 74))
+        fill_rect(bx + 48 + i * 26, by + 24.5, 8, 8.5, ink)
+    fill_rect(bx + 40, by + 33, 108, 2.8, ink)
 
 
 def s_japan(bx, by, bw, bh):
+    # One bold subject: a rising chart arrow under a red sun disc.
     fill_rect(bx, by, bw, bh, TINT)
-    fill_poly([(bx + 20, by + 17), (bx + 56, by + 17), (bx + 69, by + 25.5),
-               (bx + 56, by + 34), (bx + 20, by + 34)], RED)
-    fill_circle(bx + 27, by + 25.5, 2.7, TINT)
-    pts = [(bx + 92, by + 33), (bx + 114, by + 21), (bx + 136, by + 25),
-           (bx + 162, by + 15)]
-    polyline(pts, 2.7, GREEN)
-    fill_poly([(pts[-1][0], pts[-1][1]), (pts[-1][0] - 10, pts[-1][1] + 1),
-               (pts[-1][0] - 3, pts[-1][1] + 9)], GREEN)
+    fill_circle(bx + 161, by + 20.5, 6, RED)
+    thick_line(bx + 12, by + 34.5, bx + 178, by + 34.5, 1.4, (120, 110, 95))
+    pts = [(bx + 16, by + 31), (bx + 58, by + 25), (bx + 96, by + 28),
+           (bx + 138, by + 18.5)]
+    polyline(pts, 3.2, INK)
+    fill_poly([(bx + 138, by + 18.5), (bx + 125, by + 18), (bx + 132, by + 27)],
+              INK)
 
 
 def s_italy(bx, by, bw, bh):
+    # One bold subject: a strike crowd - big heads and bodies, two
+    # demonstrators holding placards high.
     fill_rect(bx, by, bw, bh, SKY)
     fill_rect(bx, by + bh - 6, bw, 6, (150, 140, 120))
-    for i, (ox, pc) in enumerate([(34, RED), (84, BLUE), (134, TEAL)]):
-        cx = bx + ox
-        fill_circle(cx, by + 21, 3.5, INK)
-        thick_line(cx, by + 24.5, cx, by + 32, 2.1, INK)
-        thick_line(cx + 2, by + 27, cx + 7, by + 21, 1.4, INK)
-        fill_rect(cx + 6, by + 14, 17, 10.5, pc)
-        fill_rect(cx + 9, by + 18.5, 11, 1.6, WHITE)
+    for i, cx0 in enumerate([30, 72, 118, 158]):
+        cx = bx + cx0
+        if i in (0, 2):
+            pc = RED if i == 0 else TEAL
+            thick_line(cx + 3, by + 27, cx + 9, by + 18.5, 1.8, INK)
+            fill_rect(cx - 4, by + 17.5, 26, 10, pc)
+            fill_rect(cx - 4, by + 21.5, 26, 2, WHITE)
+        else:
+            thick_line(cx + 2, by + 27, cx + 8, by + 21, 1.8, INK)
+        fill_circle(cx, by + 23.5, 4.3, INK)
+        thick_line(cx, by + 27.5, cx, by + 34.5, 3.0, INK)
 
 
 def s_gold(bx, by, bw, bh):
+    # One bold subject: a pyramid stack of gold bars, centred.
     fill_rect(bx, by, bw, bh, (35, 33, 29))
 
-    def bar(x, y, w):
-        fill_poly([(x, y), (x + w, y), (x + w - 4, y - 6), (x + 4, y - 6)],
-                  GOLD)
-    bar(bx + 18, by + 24, 34)
-    bar(bx + 62, by + 29, 34)
-    bar(bx + 106, by + 34, 34)
-    pts = [(bx + 120, by + 16), (bx + 146, by + 21), (bx + 172, by + 27)]
-    polyline(pts, 2.2, RED)
+    def bar(x, ybase):
+        fill_poly([(x, ybase), (x + 34, ybase), (x + 30, ybase - 8),
+                   (x + 4, ybase - 8)], GOLD)
+    for x in (41, 77, 113):
+        bar(bx + x, by + 35)
+    for x in (59, 95):
+        bar(bx + x, by + 26.5)
 
 
 def s_mercury(bx, by, bw, bh):
+    # One bold subject: the planet disc and the probe beside it,
+    # both drawn large - disc at left, probe with two solar wings.
     fill_rect(bx, by, bw, bh, NAVY)
-    _stars(bx, by, bw, bh, 12, (190, 200, 220))
-    fill_circle(bx + 52, by + 24, 12.5, (172, 152, 130))
-    for (ox, oy, r) in [(-4, -3, 2.6), (4, 3, 3.2), (1, -6, 1.9)]:
-        fill_circle(bx + 52 + ox, by + 24 + oy, r, (146, 126, 104))
-    sx, sy = bx + 128, by + 22
-    fill_rect(sx, sy - 3, 15, 6.5, WHITE)
-    fill_rect(sx - 13, sy - 5, 11, 10, (86, 130, 190))
-    fill_rect(sx + 17, sy - 5, 11, 10, (86, 130, 190))
-    thick_line(sx + 7, sy + 3, sx + 16, sy + 10, 1.2, WHITE)
-    fill_circle(sx + 17, sy + 11, 1.8, GOLD)
+    _stars(bx, by, bw, bh, 8, (190, 200, 220))
+    fill_circle(bx + 46, by + 26.5, 9, (172, 152, 130))
+    for (ox, oy, r) in [(-3, -2, 2.2), (3.5, 3, 2.8), (0.5, -5, 1.6)]:
+        fill_circle(bx + 46 + ox, by + 26.5 + oy, r, (146, 126, 104))
+    fill_rect(bx + 104, by + 20.5, 15, 11, (86, 130, 190))
+    fill_rect(bx + 141, by + 20.5, 15, 11, (86, 130, 190))
+    fill_rect(bx + 121, by + 22.5, 18, 7, WHITE)
+    thick_line(bx + 119, by + 26, bx + 121, by + 26, 2.0, WHITE)
+    thick_line(bx + 139, by + 26, bx + 141, by + 26, 2.0, WHITE)
+    thick_line(bx + 130, by + 22.5, bx + 130, by + 19.4, 1.4, WHITE)
+    fill_circle(bx + 130, by + 18.7, 1.6, GOLD)
 
 
 def s_sudan(bx, by, bw, bh):
+    # One bold subject: a quadcopter drone silhouette, centred and
+    # large - body, four arms, four rotor discs.
     fill_rect(bx, by, bw, bh, SAND)
-    fill_circle(bx + 164, by + 20, 6.5, GOLD)
-    fill_poly([(bx + 44, by + 36), (bx + 88, by + 36), (bx + 76, by + 27),
-               (bx + 56, by + 27)], (122, 92, 60))
-    cx, cy = bx + 128, by + 21
-    thick_line(cx - 13, cy - 6, cx + 13, cy + 6, 1.7, INK)
-    thick_line(cx - 13, cy + 6, cx + 13, cy - 6, 1.7, INK)
-    fill_rect(cx - 6, cy - 2.2, 12, 4.4, INK)
-    for (ox, oy) in [(-13, -6), (13, -6), (-13, 6), (13, 6)]:
-        fill_circle(cx + ox, cy + oy, 2.5, (88, 82, 76))
+    cx, cy = bx + bw / 2.0, by + 26
+    dark = (70, 62, 54)
+    thick_line(cx - 6, cy - 2, cx - 22, cy - 7, 2.4, INK)
+    thick_line(cx + 6, cy - 2, cx + 22, cy - 7, 2.4, INK)
+    thick_line(cx - 6, cy + 2.5, cx - 22, cy + 7.5, 2.4, INK)
+    thick_line(cx + 6, cy + 2.5, cx + 22, cy + 7.5, 2.4, INK)
+    for (ox, oy) in [(-24, -7.5), (24, -7.5), (-24, 8), (24, 8)]:
+        fill_ellipse(cx + ox, cy + oy, 7, 1.9, dark)
+    fill_rect(cx - 8, cy - 3, 16, 6, INK)
+    fill_circle(cx, cy + 4.6, 1.8, dark)
 
 
 def s_cricket(bx, by, bw, bh):
+    # One bold subject: a big diagonal bat and a red ball.
     fill_rect(bx, by, bw, bh, (88, 132, 72))
-    fill_rect(bx + 66, by + 15, 52, 21, SAND)
-    for i in range(3):
-        thick_line(bx + 148 + i * 5, by + 20, bx + 148 + i * 5, by + 33,
-                   1.9, (232, 200, 110))
-    fill_poly([(bx + 28, by + 34), (bx + 37, by + 34), (bx + 52, by + 16),
-               (bx + 45, by + 12.5)], (219, 193, 142))
-    fill_circle(bx + 94, by + 25, 4.6, RED)
-    polyline(arc_pts(bx + 94, by + 25, 3.4, 4.4, 300, 60), 0.9, WHITE)
+    fill_rect(bx + 30, by + 29.5, 128, 5.5, SAND)
+    thick_line(bx + 54, by + 19, bx + 80, by + 31, 9.5, (219, 193, 142))
+    thick_line(bx + 48, by + 17.8, bx + 54, by + 19, 3.2, (96, 64, 38))
+    fill_circle(bx + 128, by + 25.5, 5.2, RED)
+    polyline(arc_pts(bx + 128, by + 25.5, 3.4, 4.4, 300, 60), 0.9, WHITE)
 
 
 def small_panel(x, y, w, h, scene, label, band_col, region, headline, body):
@@ -1361,10 +1379,17 @@ def small_panel(x, y, w, h, scene, label, band_col, region, headline, body):
     bx, by, bw, bh = x + 1, y + 1, w - 2, 36
     scene(bx, by, bw, bh)
     label_band(bx, by, bw, 17, label, "", band_col, 15.5)
-    draw_region(x + 7, y + 50, region, w - 14)
-    hend = draw_wrapped(x + 7, y + 70, headline, 22, INK, 'SERIF',
-                        w - 14, 24)
-    draw_wrapped(x + 7, hend + 17.5, body, 13.5, INK, 'SANS', w - 14,
+    draw_region(x + 7, y + 50, region, w - 14, size=10.5, floor=10.5)
+    # Shared panel rhythm (identical in every small panel): kicker
+    # baseline y+50 at one uniform size (10.5 - the size at which
+    # the longest kicker string fits the measure, so no panel's
+    # kicker is fitted differently from another's), headline
+    # baselines y+70 / y+95 (pitch 25, 1.6x cap height), body
+    # always starts at y+113.5 - driven by these constants, never
+    # by how the headline happened to wrap.
+    draw_wrapped(x + 7, y + 70, headline, 22, INK, 'SERIF',
+                 w - 14, 25)
+    draw_wrapped(x + 7, y + 113.5, body, 13.5, INK, 'SANS', w - 14,
                  15.5)
 
 
@@ -1383,15 +1408,16 @@ def btc_panel(x, y, w, h):
     bx, by, bw, bh = x + 1, y + 1, w - 2, 36
     s_btc(bx, by, bw, bh)
     label_band(bx, by, bw, 17, "BITCOIN < $60K", "", RED, 15.5)
-    draw_region(x + 7, y + 50, "4 · WORLD · CRYPTO · REUTERS · C", w - 14)
+    draw_region(x + 7, y + 50, "4 · WORLD · CRYPTO · REUTERS · C", w - 14,
+                size=10.5, floor=10.5)
     draw_wrapped(x + 7, y + 70, "Bitcoin breaks below $60,000", 22, INK,
-                 'SERIF', w - 14, 24)
-    draw_text(x + 7, y + 115, "IBIT -$541.1M",
+                 'SERIF', w - 14, 25)
+    draw_text(x + 7, y + 114, "IBIT -$541.1M",
               fit_size("IBIT -$541.1M", 21, 'SANS_B', w - 14, 0.2, 16),
               RED, 'SANS_B', tracking=0.2)
-    draw_text(x + 7, y + 128, "Biggest-ever one-day outflow", 12, DARK,
+    draw_text(x + 7, y + 126, "Biggest-ever one-day outflow", 12, DARK,
               'SANS', tracking=0.3)
-    draw_text(x + 7, y + 140.5, "on record (Thu 19), Farside", 12, DARK,
+    draw_text(x + 7, y + 137.5, "on record (Thu 19), Farside", 12, DARK,
               'SANS', tracking=0.3)
 
 
@@ -1511,7 +1537,7 @@ ALSO = [
     (20, "Dhaka: violence pre-Hasina return", "R"),
     (21, "Brazil: Raoni land recognised", "R"),
     (22, "Al-Dahi: mosque set alight in Israel", "R"),
-    (23, "New York: Anthropic ends $83 IPO", "R"),
+    (23, "Semeru: volcano erupts in East Java", "R"),
     (24, "Hormuz: Brent holds near $92", "C"),
     (25, "Hong Kong: Hang Seng falls 1.9%", "C"),
     (26, "Taipei: TSMC -4.8%, Samsung -6-7%", "C"),
@@ -1575,7 +1601,7 @@ for _li, _ln in enumerate(_DC_LINES[:2]):
     _DC_YY += 14
 
 # Sources line
-draw_text(M, 1021, "Sources: Reuters · AP · BBC · AFP · IMD · Al Jazeera "
+draw_text(M, 1020, "Sources: Reuters · AP · BBC · AFP · IMD · Al Jazeera "
           "· ANSA · Kitco · Farside. All 31 stories are from Friday 20 "
           "November 2026. Original drawings.", 12.5, DARK, 'SANS',
           tracking=0.25)
