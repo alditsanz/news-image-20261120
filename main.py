@@ -1108,7 +1108,7 @@ CW = W - 2 * M              # content width = 980
 fill_rect(M, 13, 9, 9, RED)
 draw_text(M + 15, 22, "THE WORLD IN ONE DAY", 20, INK, 'SANS_B',
           tracking=1.2)
-draw_text(W - M, 22, "31 STORIES · 7 REGIONS · EVERY ONE DATED "
+draw_text(W - M, 22, "33 STORIES · 7 REGIONS · EVERY ONE DATED "
           "FRIDAY 20 NOVEMBER 2026", 15, DARK, 'SANS', tracking=0.3,
           align='r')
 fill_rect(M, 28, CW, 1.6, INK)
@@ -1118,7 +1118,7 @@ fill_rect(M, 28, CW, 1.6, INK)
 # the date is no longer width-capped by it: fitted against CW it
 # lands ~82 (cap top ~41 in the 34-118 band, descenders clear of
 # the rule at 121 by ~4 px). The masthead line above already
-# carries the red square and the 31-stories tally.
+# carries the red square and the 33-stories tally.
 _MS = fit_size("Friday 20 November 2026", 96, 'SERIF_L', CW, 0.2)
 draw_text(M, 100, "Friday 20 November 2026", _MS, INK, 'SERIF_L',
           tracking=0.2)
@@ -1186,16 +1186,16 @@ for _i, (_num, _c1, _c2) in enumerate(FIGS):
     draw_text(_cx, 223.0, _c2, 11.5, DARK, 'SANS', tracking=0.3,
               align='c')
 
-# Region bar: honest counts, summing to 31 - and the total is
+# Region bar: honest counts, summing to 33 - and the total is
 # shown, not just implied: the WORLD segment narrows to make room
 # for a red "= 31" cell at the right end, and 2 px paper dividers
 # split the segments so the bar reads as a tally. Segment widths
 # sum to 979 with the total cell, as before.
 REGIONS = [
     ("EUROPE 6", 162, BLUE), ("ASIA 10", 201, RED),
-    ("AMERICAS 2", 123, TEAL), ("AFRICA 1", 77, GOLD),
-    ("MIDDLE EAST 3", 143, BROWN), ("OCEANIA 1", 83, GREEN),
-    ("WORLD 8", 130, INK), ("= 31", 60, RED),
+    ("AMERICAS 3", 123, TEAL), ("AFRICA 1", 77, GOLD),
+    ("MIDDLE EAST 3", 143, BROWN), ("OCEANIA 2", 83, GREEN),
+    ("WORLD 8", 130, INK), ("= 33", 60, RED),
 ]
 _rx = M
 _bounds = []
@@ -1955,7 +1955,7 @@ small_panel(_px(4), PY2, PW, PH2, s_cricket, "PHILLIPS: 118", GREEN,
 
 # --------------------------------------------------------- bottom section
 draw_text(M, 784, "WHERE IT HAPPENED", 19, INK, 'SANS_X', tracking=0.6)
-draw_text(352, 784, "ALSO ON FRIDAY 20 NOVEMBER — 18 MORE STORIES", 19,
+draw_text(352, 784, "ALSO ON FRIDAY 20 NOVEMBER — 20 MORE STORIES", 19,
           INK, 'SANS_X', tracking=0.5)
 fill_rect(M, 790, CW, 1.3, INK)
 
@@ -2145,10 +2145,17 @@ ALSO = [
     (29, "Odisha: 47 Akvan trains cancelled", "C"),
     (30, "Brussels: UK-EU youth from 2030", "C"),
     (31, "Antalya: 'failure' banner at COP31", "C"),
+    (32, "Caracas: US-Venezuela military deal", "R"),
+    (33, "Sydney: Jepchirchir doping ban", "R"),
 ]
+# Round 20: 20 briefs (33 stories) - the split re-derives to
+# 10 rows per column and the pitch to 15.0, so the last baseline
+# lands at 939 (v19: 940 at pitch 17 over 9 rows) and the lines
+# keep ~2.3 px of clear air between descenders and the next
+# line's ascenders. Nothing below the block moves.
 for _i, (_n, _txt, _tag) in enumerate(ALSO):
-    _colx = 352 if _i < 9 else 684
-    _yy = 804 + (_i % 9) * 17
+    _colx = 352 if _i < 10 else 684
+    _yy = 804 + (_i % 10) * 15.0
     # One pass per glyph: the number in red, the rest in ink beside it.
     _num = str(_n)
     draw_text(_colx, _yy, _num, 13.5, RED, 'SANS_B', tracking=0.3)
@@ -2215,7 +2222,7 @@ _dc_segment(M + 794, 176, "Not yet: ", 13,
 # Sources line. Round 19: baseline 1020 -> 1019 - the v18 ink
 # reached y 1022, 2 px from the page edge; it now ends ~1021.
 draw_text(M, 1019, "Sources: Reuters · AP · BBC · AFP · IMD · Al Jazeera "
-          "· ANSA · Kitco · Farside. All 31 stories are from Friday 20 "
+          "· ANSA · Kitco · Farside. All 33 stories are from Friday 20 "
           "November 2026. Original drawings.", 12.5, DARK, 'SANS',
           tracking=0.25)
 
