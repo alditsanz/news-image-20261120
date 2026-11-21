@@ -1131,12 +1131,27 @@ draw_text(M, 142, _DEK, fit_size(_DEK, 24, 'SERIF_I', CW, 0.1), RED,
           'SERIF_I', tracking=0.1)
 fill_rect(M, 148, CW, 1.0, INK)
 
-# The day in figures: six big numbers, red dividers. Vertical rhythm
-# is set so every element clears its neighbours by >= 3 px: label
-# baseline 163 (ink 152-163) under the rule ending at 149, numeral
-# baseline 193 (ink 166-198 incl. comma tails), caption baselines
-# 209.5 / 222.5 (cap tops 201.3+) above the region bar at 228. The
-# dividers start at 168, below the label, so they never cross it.
+# The day in figures: six big numbers as a proper bordered table
+# - Fatur's order (2026-11-22 03:54 WIB): "angkanya dibuat tabel
+# aja". One row of six cells, each cell holding its numeral over
+# its two-line caption, inside a full INK grid: outer border plus
+# column rules on the true cell boundaries, all at 1.1. The grid
+# is drawn inside the old strip's box - label baseline 163 above
+# (the title stays as-is), region bar at 228 below - so the
+# block's outer height is identical and nothing else on the page
+# moves; the borders are absorbed by re-deriving the text stack
+# from the box: numeral baseline 193.5 (ink 166.5-193.5, comma
+# tails to ~200.5, clear of the caption ascenders at 201.5),
+# caption baselines 209.5 / 221.5 (pitch 12, last descenders to
+# 224.3). Paper clearances to the lines: label 1.5, digits ~1,
+# captions 1.3, region bar 1.3 - tight by necessity (every size
+# is frozen) but no ink touches a line. The column rules are
+# centred on the boundaries (the outer pair flush with the
+# border ends), giving the widest numerals (370,000 / 100,000,
+# 138.7 wide) a symmetric ~11.8 px side clearance - better than
+# the old one-sided red dividers (10.7 / 12.3). Numerals stay
+# Open Sans Bold 37 (the round-13 re-set) and the fit guard
+# (_colw - 24) is unchanged.
 draw_text(M, 163, "THE DAY IN FIGURES", 15, INK, 'SANS_X',
           tracking=1.2)
 FIGS = [
@@ -1147,28 +1162,27 @@ FIGS = [
     ("2.3%", "Japan inflation,", "October CPI"),
     ("118", "Phillips' hundred v", "India, Wellington"),
 ]
+_TT, _TB, _BW = 164.5, 226.7, 1.1   # table top / bottom / weight
+fill_rect(M, _TT, CW, _BW, INK)
+fill_rect(M, _TB - _BW, CW, _BW, INK)
 _colw = CW / 6.0
+for _i in range(7):
+    _bx = M + _i * _colw
+    if _i == 0:
+        _rx = M
+    elif _i == 6:
+        _rx = M + CW - _BW
+    else:
+        _rx = _bx - _BW / 2
+    fill_rect(_rx, _TT, _BW, _TB - _TT, INK)
 for _i, (_num, _c1, _c2) in enumerate(FIGS):
-    _x = M + _i * _colw
-    if _i:
-        fill_rect(_x, 168, 1.6, 55, RED)
-    # Round 13 re-set: the ExtraBold numerals read too heavy, so the
-    # strip is recomposed around Open Sans Bold at the same 37 size.
-    # Bold advances are narrower, so each cell is now centred as a
-    # block - numeral and both caption lines on the cell centre -
-    # and the dividers move to the true cell boundaries, giving the
-    # widest numerals (370,000 / 100,000, 138.7 wide) a symmetric
-    # 12.3 px clearance to each divider. The fit guard (_colw - 24)
-    # keeps >= 12 px total clearance if a numeral ever grows.
-    # Baseline 193 - ink 166-193, comma tails to ~196, clear of the
-    # label above and the captions below.
-    _cx = _x + _colw / 2.0
-    draw_text(_cx, 193, _num, fit_size(_num, 37, 'SANS_B',
+    _cx = M + (_i + 0.5) * _colw
+    draw_text(_cx, 193.5, _num, fit_size(_num, 37, 'SANS_B',
               _colw - 24, 0.2, 24), INK, 'SANS_B', tracking=0.2,
               align='c')
     draw_text(_cx, 209.5, _c1, 11.5, DARK, 'SANS', tracking=0.3,
               align='c')
-    draw_text(_cx, 222.5, _c2, 11.5, DARK, 'SANS', tracking=0.3,
+    draw_text(_cx, 221.5, _c2, 11.5, DARK, 'SANS', tracking=0.3,
               align='c')
 
 # Region bar: honest counts, summing to 31 - and the total is
