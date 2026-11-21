@@ -1235,10 +1235,15 @@ def zig_arrow(pts, w, c, hl, hw):
 def scene_kyiv(bx, by, bw, bh):
     # Night sky as one gradient shape, deep at the top and lifting
     # toward the horizon; the moon is a single gradient disc.
-    vgrad(bx, by, bw, bh, (16, 23, 44), (46, 58, 90))
-    _stars(bx, by, bw, bh, 34, (198, 208, 228))
+    # Round 16: darker sky and a second, farther skyline behind
+    # the main blocks, so the night has depth in layers.
+    vgrad(bx, by, bw, bh, (10, 15, 32), (36, 48, 78))
+    _stars(bx, by, bw, bh, 44, (198, 208, 228))
     grad_circle(bx + bw - 34, by + 32, 7, (242, 239, 214),
                 (206, 200, 160))
+    for (ox, hh) in [(20, 20), (52, 27), (86, 18), (224, 24),
+                     (254, 20), (282, 28)]:
+        fill_rect(bx + ox, by + bh - 14 - hh, 24, hh, (30, 38, 58))
     # city blocks with lit windows - each block one gradient
     # silhouette, windows in two warm tones
     for i, (ox, hh) in enumerate([(6, 26), (34, 34), (66, 22), (238, 30),
@@ -1253,7 +1258,7 @@ def scene_kyiv(bx, by, bw, bh):
     # river and bridge - the water is one gradient band with two
     # light streaks lying on it
     vgrad(bx, by + bh - 14, bw, 14, (52, 84, 118), (30, 54, 84))
-    thick_line(bx + 30, by + bh - 6, bx + 96, by + bh - 6, 1.1,
+    thick_line(bx + 104, by + bh - 6, bx + 170, by + bh - 6, 1.1,
                (128, 164, 202))
     thick_line(bx + 190, by + bh - 9.5, bx + 268, by + bh - 9.5, 1.1,
                (110, 146, 186))
@@ -1274,12 +1279,24 @@ def scene_kyiv(bx, by, bw, bh):
             (bx + 210, by - 90, 130, 120, 62, 100),
             (bx + 300, by - 40, 90, 84, 118, 148)]:
         polyline(arc_pts(cx, cy, rx, ry, a0, a1), 1.7, (243, 164, 62))
+    # Round 16: smoke plumes drift above the bursts, and a third,
+    # smaller burst sits between them - the barrage reads denser.
+    grad_ellipse(bx + 128, by + 50, 17, 5.5, (120, 126, 140),
+                 (86, 94, 112))
+    grad_ellipse(bx + 252, by + 42, 14, 4.5, (120, 126, 140),
+                 (86, 94, 112))
     for (ex, ey) in [(bx + 128, by + 66), (bx + 252, by + 58)]:
         fill_circle(ex, ey, 3.2, (250, 120, 50))
         for a in range(0, 360, 60):
             ar = math.radians(a)
             thick_line(ex, ey, ex + 8 * math.cos(ar), ey + 8 * math.sin(ar),
                        1.2, (250, 150, 60))
+    fill_circle(bx + 196, by + 72, 2.4, (250, 120, 50))
+    for a in range(0, 360, 60):
+        ar = math.radians(a)
+        thick_line(bx + 196, by + 72, bx + 196 + 6 * math.cos(ar),
+                   by + 72 + 6 * math.sin(ar), 1.0, (250, 150, 60))
+    src_strip(bx, by, "UKRAINE OFFICIALS")
 
 
 def scene_akvan(bx, by, bw, bh):
@@ -1287,6 +1304,12 @@ def scene_akvan(bx, by, bw, bh):
     # ellipses, lit on top; the storm spiral alternates two tones so
     # its bands separate.
     vgrad(bx, by, bw, bh, (186, 210, 228), (228, 238, 243))
+    # Round 16: a dark storm-cloud layer behind the lit clouds,
+    # so the sky has the same layered depth as the Kyiv night.
+    for (ex, ey, rx, ry) in [(60, 22, 56, 11), (170, 16, 70, 13),
+                             (268, 24, 52, 10)]:
+        grad_ellipse(bx + ex, by + ey, rx, ry, (110, 128, 148),
+                     (82, 100, 122))
     for (ex, ey, rx, ry) in [(60, 30, 52, 10), (170, 24, 66, 12),
                              (268, 32, 48, 9)]:
         grad_ellipse(bx + ex, by + ey, rx, ry, (238, 242, 245),
@@ -1295,7 +1318,13 @@ def scene_akvan(bx, by, bw, bh):
     for j, r in enumerate((7, 13, 19, 25)):
         polyline(arc_pts(cx, cy, r, r * 0.76, 25, 305), 2.3,
                  (64, 86, 108) if j % 2 == 0 else (96, 120, 142))
-    vgrad(bx, by + bh - 22, bw, 22, (104, 148, 178), (60, 102, 140))
+    # Round 16: the storm's approach track - dots along an arc
+    # from the top right down to the spiral's edge.
+    for _i, (_tx, _ty) in enumerate(arc_pts(bx + 268, by - 20, 84, 72,
+                                            62, 122, n=22)):
+        if _i % 3 == 0 and _tx < bx + bw - 4 and _ty > by + 26:
+            fill_circle(_tx, _ty, 1.7, (40, 60, 84))
+    vgrad(bx, by + bh - 22, bw, 22, (84, 128, 164), (44, 84, 120))
     polyline(arc_pts(bx + 40, by + bh - 16, 60, 7, 180, 360), 1.4, WHITE)
     polyline(arc_pts(bx + 190, by + bh - 12, 70, 8, 180, 360), 1.4, WHITE)
     # bending palms
@@ -1311,6 +1340,10 @@ def scene_akvan(bx, by, bw, bh):
         ry = by + 26 + (i * 13.1) % 52  # round 15: rain fills the
         # taller band (was % 34 in the 76 band)
         thick_line(rx, ry, rx - 3, ry + 7, 1.0, (86, 116, 146))
+    # Round 16: the landfall point is named on the coast itself.
+    draw_text(bx + bw - 8, by + 73, "GOPALPUR", 9, (40, 60, 84),
+              'SANS_B', tracking=0.3, align='r')
+    src_strip(bx, by, "WEATHER OFFICE")
 
 
 def scene_markets(bx, by, bw, bh):
@@ -1319,7 +1352,7 @@ def scene_markets(bx, by, bw, bh):
     # single glance. The old bar silhouettes are gone so nothing
     # fights the arrow; the yen coin stays at top right, clear of
     # the arrow's path and of its head.
-    vgrad(bx, by, bw, bh, (40, 46, 64), (21, 25, 37))
+    vgrad(bx, by, bw, bh, (34, 40, 56), (17, 20, 30))
     _grid(bx, by, 4, bw - 4, 27, 94, 31, 11.75, (56, 62, 78))
     # Round 15: the zigzag is re-derived for the taller band - the
     # old y range 31..64 maps onto 36..88, so the plunge keeps its
@@ -1328,6 +1361,16 @@ def scene_markets(bx, by, bw, bh):
                (bx + 90, by + 38), (bx + 142, by + 60),
                (bx + 168, by + 50), (bx + 222, by + 74),
                (bx + 246, by + 88)], 5.0, RED, 15, 8)
+    # Round 16: a second, thinner line under the plunge - the
+    # Nasdaq's own fall, in gold, with its figure labelled. The
+    # chart now carries data, not just a direction.
+    polyline([(bx + 12, by + 52), (bx + 64, by + 59),
+              (bx + 90, by + 51), (bx + 142, by + 69),
+              (bx + 168, by + 61), (bx + 222, by + 81),
+              (bx + 240, by + 90)], 2.2, (206, 160, 54))
+    draw_text(bx + 118, by + 94.5, "NASDAQ -5.28%", 8.5,
+              (226, 196, 110), 'SANS_B', tracking=0.3)
+    src_strip(bx, by, "CLOSING PRICES")
     # yen coin - concentric gradient discs, lit from the top
     cx, cy = bx + bw - 40, by + 34
     grad_circle(cx, cy, 12, (206, 160, 54), (156, 114, 30))
@@ -1339,7 +1382,34 @@ def scene_markets(bx, by, bw, bh):
     thick_line(cx - 4.2, cy + 3.4, cx + 4.2, cy + 3.4, 1.5, (84, 60, 8))
 
 
-def label_band(bx, by, bw, bh, label, kicker, col, lsize, table=None):
+PILL_COL = {"CONFIRMED": (34, 92, 58), "OFFICIAL": (36, 68, 116),
+            "REPORTED": (146, 104, 26)}
+
+
+def hero_pill(x_right, y, text):
+    """Verification pill on a hero's kicker row (round 16): a
+    solid type-coloured chip, white bold text, right-aligned to
+    x_right, its span matched to the kicker's cap height."""
+    tw_ = text_width(text, 7.5, 'SANS_B', 0.2)
+    pw = tw_ + 12
+    fill_rect(x_right - pw, y + 101.75, pw, 12.5, PILL_COL[text])
+    draw_text(x_right - pw / 2.0, y + 110.5, text, 7.5, WHITE,
+              'SANS_B', tracking=0.2, align='c')
+    return pw
+
+
+def src_strip(bx, by, text):
+    """A short black source strip inside a hero illustration
+    (round 16), bottom-left over the art: names the kind of
+    source behind the scene in our own words."""
+    tw_ = text_width(text, 8, 'SANS_B', 0.3)
+    fill_rect(bx + 6, by + 84, tw_ + 14, 12, INK)
+    draw_text(bx + 13, by + 92.5, text, 8, WHITE, 'SANS_B',
+              tracking=0.3)
+
+
+def label_band(bx, by, bw, bh, label, kicker, col, lsize, table=None,
+               pill=None):
     fill_rect(bx, by, bw, bh, col)
     if table:
         # A real two-column mini table at the right of the band
@@ -1380,7 +1450,20 @@ def label_band(bx, by, bw, bh, label, kicker, col, lsize, table=None):
         draw_text(bx + bw - 7, by + bh - 5.5, kicker, ksize, WHITE,
                   'SANS_B', tracking=0.3, align='r')
     else:
-        lsize = fit_size(label, lsize, 'SANS_X', bw - 14, 0.5, 12.0)
+        # Round 16: a small panel's band can carry a verification
+        # pill at its right end - a paper chip with ink text. The
+        # label is fitted against the chip, so band, label and
+        # pill are re-set together, never pasted over each other.
+        _chipw = 0.0
+        if pill:
+            _chipw = text_width(pill, 7.5, 'SANS_B', 0.2) + 10
+        lsize = fit_size(label, lsize, 'SANS_X',
+                         bw - 14 - (_chipw + 6 if pill else 0), 0.5,
+                         12.0)
+        if pill:
+            fill_rect(bx + bw - 7 - _chipw, by + 3, _chipw, 11, PAPER)
+            draw_text(bx + bw - 7 - _chipw / 2.0, by + 10.8, pill,
+                      7.5, INK, 'SANS_B', tracking=0.2, align='c')
     draw_text(bx + 8, by + bh - 4.5, label, lsize, WHITE, 'SANS_X',
               tracking=0.5)
 
@@ -1392,8 +1475,14 @@ def hero(x, y, w, h, scene, label, kicker, band_col, region, rcol,
     bx, by, bw, bh = x + 1, y + 1, w - 2, 98
     scene(bx, by, bw, bh)
     label_band(bx, by, bw, 24, label, kicker, band_col, 21, table)
-    draw_region(x + 9, y + 113, region, w - 18, size=14.5, floor=12.5,
-                color=rcol, tracking=0.9)
+    # Round 16: the kicker's compressed certainty code becomes a
+    # visible pill at the row's right end. The kicker is re-set
+    # to pay for it - nominal 12.8 (was 14.5) against a measure
+    # narrowed by the pill's width, uniform across all three
+    # heroes, so the row's rhythm stays even.
+    draw_region(x + 9, y + 113, region, w - 18 - 72, size=12.8,
+                floor=12.0, color=rcol, tracking=0.9)
+    hero_pill(x + w - 9, y, "CONFIRMED")
     # Round 15: the art band grows 76 -> 98 (visible strip 52 -> 74,
     # +42%) and the text stack is re-derived to pay for it inside a
     # 226 panel - kicker y+113 (scene ends y+99; kickers are all
@@ -1410,19 +1499,19 @@ def hero(x, y, w, h, scene, label, kicker, band_col, region, rcol,
 HY = 254
 HW = (CW - 20) / 3.0
 hero(M, HY, HW, 226, scene_kyiv, "KYIV", "3 BRIDGES HIT", NAVY,
-     "1 · EUROPE · WAR · REUTERS/BBC · C", RED,
+     "1 · EUROPE · WAR · REUTERS/BBC", RED,
      "Russian missiles hit three Kyiv bridges",
      "Overnight barrage of ~110 missiles and 400 drones killed at "
      "least 8 people; power and water cut in capital.")
 hero(M + HW + 10, HY, HW, 226, scene_akvan, "CYCLONE AKVAN",
      "LANDFALL · 07:30", RED,
-     "2 · ASIA · WEATHER · IMD · C", TEAL,
+     "2 · ASIA · WEATHER · IMD", TEAL,
      "Cyclone Akvan comes ashore in Odisha",
      "Winds 70-80 km/h, gusting to 90, crossed near Gopalpur after "
      "370,000 moved to shelters. No deaths reported.")
 hero(M + 2 * HW + 20, HY, HW, 226, scene_markets, "AI SELL-OFF",
      "", NAVY,
-     "3 · WORLD · MARKETS · AP · C", BLUE,
+     "3 · WORLD · MARKETS · AP", BLUE,
      "AI sell-off sinks Asia, then Wall Street",
      "Chip stocks slid across Asia; Nasdaq then lost 5.28%. Bitcoin "
      "broke below $60,000.",
@@ -1449,6 +1538,11 @@ def s_btc(bx, by, bw, bh):
                (bx + 90, by + 23.0), (bx + 120, by + 31.0),
                (bx + 134, by + 26.0), (bx + 156, by + 35.0)],
               5.2, RED, 13.5, 6.5)
+    # Round 16: the fund behind the record outflow is named in
+    # the art itself - IBIT, whose $541.1M one-day outflow the
+    # research file records (Farside via the notes).
+    draw_text(bx + bw - 8, by + 26, "IBIT", 9.5, (235, 230, 220),
+              'SANS_B', tracking=0.3, align='r')
 
 
 def s_cop(bx, by, bw, bh):
@@ -1699,12 +1793,15 @@ def s_cricket(bx, by, bw, bh):
 def small_panel(x, y, w, h, scene, label, band_col, region, headline,
                 body, hsize=22, hpitch=22, hstart=74, bsize=13.5,
                 bpitch=15, bstart=114.5, hfont='SERIF', bandh=44,
-                ky=56):
+                ky=56, pill=None):
     fill_rect(x, y, w, h, PANEL)
     outline_rect(x, y, w, h, 1.1, RULE)
     bx, by, bw, bh = x + 1, y + 1, w - 2, bandh
     scene(bx, by, bw, bh)
-    label_band(bx, by, bw, 17, label, "", band_col, 15.5)
+    # Round 16: the band label is re-set at 13 (was 15.5) so the
+    # verification pill fits the band's right end - the whole
+    # band is recomposed around the pill, uniformly.
+    label_band(bx, by, bw, 17, label, "", band_col, 13.0, pill=pill)
     draw_region(x + 7, y + ky, region, w - 14, size=10.5, floor=10.5)
     # Shared panel rhythm (identical in every small panel): kicker
     # baseline y+56 at one uniform size (10.5 - the size at which
@@ -1751,8 +1848,9 @@ def btc_panel(x, y, w, h):
     outline_rect(x, y, w, h, 1.1, RULE)
     bx, by, bw, bh = x + 1, y + 1, w - 2, 44
     s_btc(bx, by, bw, bh)
-    label_band(bx, by, bw, 17, "BITCOIN < $60K", "", RED, 15.5)
-    draw_region(x + 7, y + 56, "4 · WORLD · CRYPTO · REUTERS · C", w - 14,
+    label_band(bx, by, bw, 17, "BITCOIN < $60K", "", RED, 13.0,
+               pill="CONFIRMED")
+    draw_region(x + 7, y + 56, "4 · WORLD · CRYPTO · REUTERS", w - 14,
                 size=10.5, floor=10.5)
     draw_wrapped(x + 7, y + 74, "Bitcoin breaks below $60,000", 22, INK,
                  'SERIF_L', w - 14, 22)
@@ -1768,56 +1866,57 @@ def btc_panel(x, y, w, h):
 
 btc_panel(_px(0), PY1, PW, PH)
 small_panel(_px(1), PY1, PW, PH, s_cop, "COP31: NO DEAL", NAVY,
-            "5 · WORLD · CLIMATE · AFP/AP · C",
+            "5 · WORLD · CLIMATE · AFP/AP",
             "COP31 ends with no deal",
             "Draft axed fossil fuels and the $120bn target. Final "
             "text expected Saturday.",
-            bsize=12.5, bpitch=13.5, bstart=112, hfont='SERIF_L')
+            bsize=12.5, bpitch=13.5, bstart=112, hfont='SERIF_L',
+            pill="CONFIRMED")
 small_panel(_px(2), PY1, PW, PH, s_ukeu, "UK-EU DEAL", BLUE,
-            "6 · EUROPE · RESET · REUTERS · C",
+            "6 · EUROPE · RESET · REUTERS",
             "UK-EU 'reset' deal sealed",
             "100,000 youth visas/year, food trade eased, carbon "
             "markets linked.",
-            bsize=12.5, bpitch=13.5, bstart=112)
+            bsize=12.5, bpitch=13.5, bstart=112, pill="CONFIRMED")
 small_panel(_px(3), PY1, PW, PH, s_icj, "WORLD COURT", INK,
-            "7 · ASIA · JUSTICE · REUTERS · C",
+            "7 · ASIA · JUSTICE · REUTERS",
             "Myanmar rejects genocide ruling",
             "First ever: a state found responsible for genocide by "
-            "ICJ. Myanmar calls it unfair.",
-            bsize=12.5, bpitch=13.5, bstart=112)
+            "ICJ.",
+            bsize=12.5, bpitch=13.5, bstart=112, pill="CONFIRMED")
 small_panel(_px(4), PY1, PW, PH, s_japan, "JAPAN: +2.3%", RED,
-            "8 · ASIA · ECONOMY · OFFICIAL · C",
+            "8 · ASIA · ECONOMY · OFFICIAL",
             "Japan inflation rises to 2.3%",
             "Core up 2.2%; December rise to 1.5% in view.",
-            hfont='SERIF_L')
+            hfont='SERIF_L', pill="OFFICIAL")
 small_panel(_px(0), PY2, PW, PH2, s_italy, "ITALY: STRIKE", RED,
-            "9 · EUROPE · LABOUR · ANSA · C",
+            "9 · EUROPE · LABOUR · ANSA",
             "General strike across Italy",
             "24-hour CGIL stoppage; marches in 100+ cities over "
             "budget.",
-            bsize=11.5)
+            bsize=11.5, pill="CONFIRMED")
 small_panel(_px(1), PY2, PW, PH2, s_gold, "GOLD < $3,600", INK,
-            "10 · WORLD · MARKETS · KITCO · C",
+            "10 · WORLD · MARKETS · KITCO",
             "Gold breaks under $3,600",
             "14-month low; silver also slid under $42 amid "
             "risk-off move.",
-            bsize=12.5, hfont='SERIF_L')
+            bsize=12.5, hfont='SERIF_L', pill="CONFIRMED")
 small_panel(_px(2), PY2, PW, PH2, s_mercury, "MERCURY", NAVY,
-            "11 · WORLD · SPACE · ESA · C",
+            "11 · WORLD · SPACE · ESA",
             "BepiColombo reaches Mercury — orbit burn Saturday",
             "8 years out; only the 2nd craft to orbit the planet.",
             hsize=18, hpitch=18.5, hstart=69.5, bsize=12.5, bpitch=12,
-            bstart=119.5, bandh=42, ky=54.5)
+            bstart=119.5, bandh=42, ky=54.5, pill="CONFIRMED")
 small_panel(_px(3), PY2, PW, PH2, s_sudan, "SUDAN: DRONE", BROWN,
-            "12 · AFRICA · WAR · DABANGA · R",
+            "12 · AFRICA · WAR · DABANGA",
             "Sudan: drone kills 10",
             "It hit the Bajoun gold mine in South Kordofan.",
-            hfont='SERIF_L')
+            hfont='SERIF_L', pill="REPORTED")
 small_panel(_px(4), PY2, PW, PH2, s_cricket, "PHILLIPS: 118", GREEN,
-            "13 · OCEANIA · CRICTRACKER · C",
+            "13 · OCEANIA · CRICTRACKER",
             "Phillips hits 118 v India",
             "A first: hundreds v India in all 3 formats.",
-            hfont='SERIF_L')
+            hfont='SERIF_L', pill="CONFIRMED")
 
 # --------------------------------------------------------- bottom section
 draw_text(M, 784, "WHERE IT HAPPENED", 19, INK, 'SANS_X', tracking=0.6)
@@ -1973,6 +2072,11 @@ draw_text(_sx - 8, _sy + 13.5, "11", 8.5, INK, 'SANS_B', align='c')
 draw_text(MAPX + 2, MAPY + MAPH + 10,
           "Pins 1-13 as numbered; 11 = Mercury, off map.", 11.5, DARK,
           'SANS', tracking=0.3)
+# Round 16: the cross-reference is stated outright - a pin's
+# number is its story's number on this page.
+draw_text(MAPX + 2, MAPY + MAPH + 23.5,
+          "Each number is the story with that number on this page.",
+          11.5, DARK, 'SANS', tracking=0.3)
 
 ALSO = [
     (14, "New York: Michigan sentiment 51.5", "C"),
@@ -2003,12 +2107,14 @@ for _i, (_n, _txt, _tag) in enumerate(ALSO):
     draw_text(_colx + text_width(_num, 13.5, 'SANS_B', 0.3) + 7, _yy,
               "%s (%s)" % (_txt, _tag), 13.5, INK, 'SANS', tracking=0.3)
 
-# How sure strip (wording trimmed so the single line fits its measure
-# on measured metrics - see the containment audit)
+# How sure strip: the legend for the round-16 pills. The OFFICIAL
+# term joins the line (Japan's figures are an official release);
+# the whole line is measured to fit its measure (875 of 980).
 _hx = draw_text(M, 954, "HOW SURE:", 13, INK, 'SANS_B', tracking=0.3)
 draw_text(_hx + 5, 954, "CONFIRMED = two or more outlets or official "
-          "data · REPORTED = one source or an official claim.", 13,
-          DARK, 'SANS', tracking=0.3)
+          "data · OFFICIAL = an official release · REPORTED = one "
+          "source or an official claim.", 13, DARK, 'SANS',
+          tracking=0.3)
 
 # Date check box: red label and ink body are separate single passes -
 # the label is never overdrawn on top of the body text. The box gives
@@ -2019,33 +2125,44 @@ draw_text(_hx + 5, 954, "CONFIRMED = two or more outlets or official "
 # ~9 px above the bottom border. Room for this comes from the footer
 # stack above: ALSO pitch 17 from y 804 and a shorter map.
 outline_rect(M, 962, CW, 45, 1.3, RED)
+# Round 16: the box becomes two segments, split at the text's own
+# "Not yet:" boundary - the older-news exclusions on the left,
+# the not-yet-happened items on the right, divided by a red rule.
+# Every word is Fatur's, verbatim and in order; only the layout
+# splits. Each segment wraps in its own column (measured: two
+# lines each at size 13), its label opening the first line.
 _DC_SIZE = 13
-_DC_LABEL = "DATE CHECK — "
-_DC_LABEL_W = text_width(_DC_LABEL, 15, 'SANS_B', 0.2)
-draw_text(M + 10, 981, "DATE CHECK —", 15, RED, 'SANS_B', tracking=0.2)
-_DC_BODY = ("Not Friday news left out on purpose: Shenzhen declaration, "
-            "Anthropic's debut, PIF Tower strike, Bukele filing (Thu 19) "
-            "· Fiji & Tonga declarations (Thu) · Denmark-Greenland vote "
-            "(Thu) · Kenya Ebola discharge (11 Nov). Not yet: Mercury "
-            "orbit burn, COP31 final text (Sat).")
-_DC_LINES = []
-_DC_CUR = ''
-_DC_MAXW = CW - 20 - _DC_LABEL_W
-for _wd in _DC_BODY.split(' '):
-    _trial = _wd if not _DC_CUR else _DC_CUR + ' ' + _wd
-    if text_width(_trial, _DC_SIZE, 'SANS', 0.2) <= _DC_MAXW or not _DC_CUR:
-        _DC_CUR = _trial
-    else:
-        _DC_LINES.append(_DC_CUR)
-        _DC_CUR = _wd
-        _DC_MAXW = CW - 20
-if _DC_CUR:
-    _DC_LINES.append(_DC_CUR)
-_DC_YY = 981
-for _li, _ln in enumerate(_DC_LINES[:2]):
-    draw_text(M + 10 + (_DC_LABEL_W if _li == 0 else 0), _DC_YY, _ln,
-              _DC_SIZE, INK, 'SANS', tracking=0.2)
-    _DC_YY += 14
+
+
+def _dc_segment(x, w, label, label_size, body):
+    lw_ = text_width(label, label_size, 'SANS_B', 0.2)
+    draw_text(x, 981, label.rstrip(), label_size, RED, 'SANS_B',
+              tracking=0.2)
+    lines, cur, maxw = [], '', w - lw_
+    for wd in body.split(' '):
+        t = wd if not cur else cur + ' ' + wd
+        if text_width(t, _DC_SIZE, 'SANS', 0.2) <= maxw or not cur:
+            cur = t
+        else:
+            lines.append(cur)
+            cur = wd
+            maxw = w
+    if cur:
+        lines.append(cur)
+    for li, ln in enumerate(lines[:2]):
+        draw_text(x + (lw_ if li == 0 else 0), 981 + li * 14, ln,
+                  _DC_SIZE, INK, 'SANS', tracking=0.2)
+
+
+_dc_segment(M + 10, 768, "DATE CHECK — ", 15,
+            "Not Friday news left out on purpose: Shenzhen "
+            "declaration, Anthropic's debut, PIF Tower strike, "
+            "Bukele filing (Thu 19) · Fiji & Tonga declarations "
+            "(Thu) · Denmark-Greenland vote (Thu) · Kenya Ebola "
+            "discharge (11 Nov).")
+fill_rect(M + 786, 968, 1.0, 33, RED)
+_dc_segment(M + 794, 176, "Not yet: ", 13,
+            "Mercury orbit burn, COP31 final text (Sat).")
 
 # Sources line
 draw_text(M, 1020, "Sources: Reuters · AP · BBC · AFP · IMD · Al Jazeera "
