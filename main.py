@@ -456,6 +456,14 @@ def wgt(size, ratio, minpx):
     return max(minpx, size * ratio)
 
 # ------------------------------------------------------------------ output
+# Solid-stroke curve applied to the box-downscaled image: a gentle power
+# remap that pulls mid-grey anti-aliasing fringe toward the ink value, so
+# letters land as solid strokes with no semi-transparent grey halo, while
+# flat art fills (uniform values) stay uniform. Endpoints are exact.
+_SOLID = bytes(max(0, min(255, round(255.0 * (v / 255.0) ** 1.28)))
+               for v in range(256))
+
+
 def downscale():
     """Box-downscale the 4096 canvas to 1024 with SWAR big-int sums:
     each byte is spread into a 16-bit lane, rows and neighbours are added
@@ -480,7 +488,7 @@ def downscale():
         orow[0::3] = res[0::24]
         orow[1::3] = res[2::24]
         orow[2::3] = res[4::24]
-        out[oy * W * 3:(oy + 1) * W * 3] = orow
+        out[oy * W * 3:(oy + 1) * W * 3] = orow.translate(_SOLID)
     return bytes(out)
 
 
@@ -514,7 +522,7 @@ fill_rect(M, 13, 9, 9, RED)
 draw_text(M + 15, 22, "THE WORLD IN ONE DAY", 10.5, INK,
           wgt(10.5, 0.17, 1.6), tracking=0.8)
 draw_text(W - M, 22, "40 STORIES · 7 REGIONS · EVERY ONE DATED "
-          "FRIDAY 20 NOVEMBER 2026", 8.8, GREY, wgt(8.8, 0.18, 1.5),
+          "FRIDAY 20 NOVEMBER 2026", 8.8, GREY, wgt(8.8, 0.20, 1.75),
           tracking=0.3, align='r')
 fill_rect(M, 28, CW, 1.6, INK)
 
@@ -522,7 +530,7 @@ fill_rect(M, 28, CW, 1.6, INK)
 fill_rect(M, 38, 94, 76, RED)
 draw_text(M + 47, 56, "NOV", 12, WHITE, 2.0, tracking=2.0, align='c')
 draw_text(M + 47, 93, "20", 38, WHITE, 5.4, tracking=1.0, align='c')
-draw_text(M + 47, 108, "FRI · 2026", 8.5, WHITE, 1.5, tracking=0.6,
+draw_text(M + 47, 108, "FRI · 2026", 8.5, WHITE, 1.7, tracking=0.6,
           align='c')
 draw_text(132, 100, "Friday 20 November 2026", 57, INK, 6.4,
           tracking=0.6, font=SERIF)
@@ -536,7 +544,7 @@ draw_text(M, 140, "Russian missiles hit Kyiv's bridges · Cyclone Akvan "
 fill_rect(M, 148, CW, 1.0, INK)
 
 # The day in figures: six big numbers, red dividers
-draw_text(M, 162, "THE DAY IN FIGURES", 8.5, GREY, 1.5, tracking=1.2)
+draw_text(M, 162, "THE DAY IN FIGURES", 8.5, GREY, 1.7, tracking=1.2)
 FIGS = [
     ("3", "bridges hit", "in Kyiv"),
     ("370,000", "evacuated for", "Cyclone Akvan"),
@@ -551,8 +559,8 @@ for _i, (_num, _c1, _c2) in enumerate(FIGS):
     if _i:
         fill_rect(_x - 9, 156, 1.6, 50, RED)
     draw_text(_x, 190, _num, 24, INK, wgt(24, 0.15, 3.4), tracking=0.2)
-    draw_text(_x, 202, _c1, 7.8, GREY, wgt(7.8, 0.19, 1.5))
-    draw_text(_x, 213, _c2, 7.8, GREY, wgt(7.8, 0.19, 1.5))
+    draw_text(_x, 202, _c1, 8.4, GREY, wgt(8.4, 0.21, 1.8))
+    draw_text(_x, 213, _c2, 8.4, GREY, wgt(8.4, 0.21, 1.8))
 
 # Region bar: honest counts, summing to 40
 REGIONS = [
@@ -565,7 +573,7 @@ _rx = M
 for _label, _w, _c in REGIONS:
     fill_rect(_rx, 222, _w, 19, _c)
     draw_text(_rx + _w / 2.0, 235.5, _label, 9, WHITE,
-              wgt(9, 0.19, 1.7), tracking=0.4, align='c')
+              wgt(9, 0.21, 1.9), tracking=0.4, align='c')
     _rx += _w
 
 # ------------------------------------------------------------- hero scenes
@@ -668,7 +676,7 @@ def label_band(bx, by, bw, bh, label, kicker, col, lsize):
               wgt(lsize, 0.20, 2.2), tracking=0.5)
     if kicker:
         draw_text(bx + bw - 7, by + bh - 5.5, kicker, lsize - 3.4, WHITE,
-                  wgt(lsize - 3.4, 0.19, 1.5), tracking=0.3, align='r')
+                  wgt(lsize - 3.4, 0.21, 1.7), tracking=0.3, align='r')
 
 
 def hero(x, y, w, h, scene, label, kicker, band_col, region, rcol,
@@ -678,12 +686,12 @@ def hero(x, y, w, h, scene, label, kicker, band_col, region, rcol,
     bx, by, bw, bh = x + 1, y + 1, w - 2, 76
     scene(bx, by, bw, bh)
     label_band(bx, by, bw, 18, label, kicker, band_col, 11.5)
-    draw_text(x + 9, y + 93, region, 8.3, rcol, wgt(8.3, 0.20, 1.65),
+    draw_text(x + 9, y + 93, region, 8.3, rcol, wgt(8.3, 0.22, 1.9),
               tracking=0.3)
     hend = draw_wrapped(x + 9, y + 117, headline, 16, INK,
                         wgt(16, 0.16, 2.6), w - 18, 19.5)
-    draw_wrapped(x + 9, hend + 17, standfirst, 9.2, (52, 48, 42),
-                 wgt(9.2, 0.185, 1.7), w - 18, 12.3)
+    draw_wrapped(x + 9, hend + 17, standfirst, 9.8, (52, 48, 42),
+                 wgt(9.8, 0.20, 2.0), w - 18, 13.6)
 
 
 HY = 250
@@ -852,12 +860,12 @@ def small_panel(x, y, w, h, scene, label, band_col, region, headline, body):
     bx, by, bw, bh = x + 1, y + 1, w - 2, 36
     scene(bx, by, bw, bh)
     label_band(bx, by, bw, 13, label, "", band_col, 8.3)
-    draw_text(x + 7, y + 48, region, 6.6, GREY, wgt(6.6, 0.22, 1.45),
+    draw_text(x + 7, y + 48, region, 7.0, GREY, wgt(7.0, 0.23, 1.65),
               tracking=0.15)
     hend = draw_wrapped(x + 7, y + 63, headline, 10.3, INK,
                         wgt(10.3, 0.17, 1.75), w - 14, 12.4)
-    draw_wrapped(x + 7, hend + 13.5, body, 7.55, (52, 48, 42),
-                 wgt(7.55, 0.195, 1.45), w - 14, 9.9)
+    draw_wrapped(x + 7, hend + 13.5, body, 8.3, (52, 48, 42),
+                 wgt(8.3, 0.24, 2.0), w - 14, 11.3)
 
 
 PY1, PY2, PH = 472, 640, 160
@@ -875,21 +883,21 @@ def btc_panel(x, y, w, h):
     bx, by, bw, bh = x + 1, y + 1, w - 2, 36
     s_btc(bx, by, bw, bh)
     label_band(bx, by, bw, 13, "BITCOIN < $60K", "", RED, 8.3)
-    draw_text(x + 7, y + 48, "4 · WORLD · CRYPTO · CONF · REUTERS", 6.6,
-              GREY, wgt(6.6, 0.22, 1.45), tracking=0.15)
+    draw_text(x + 7, y + 48, "4 · WORLD · CRYPTO · CONF · REUTERS", 7.0,
+              GREY, wgt(7.0, 0.23, 1.65), tracking=0.15)
     draw_wrapped(x + 7, y + 63, "Bitcoin breaks below $60,000", 10.3, INK,
                  wgt(10.3, 0.17, 1.75), w - 14, 12.4)
     draw_wrapped(x + 7, y + 76, "First dip under $60k since July, to a "
                  "$58,678 low. Fear gauge: 11 of 100 - extreme fear.",
-                 7.55, (52, 48, 42), wgt(7.55, 0.195, 1.45), w - 14, 9.9)
+                 8.3, (52, 48, 42), wgt(8.3, 0.24, 2.0), w - 14, 11.3)
     draw_text(x + 7, y + 112, "IBIT -$541.1M", 11.5, RED,
               wgt(11.5, 0.18, 2.1))
     draw_wrapped(x + 7, y + 122.5, "BlackRock's biggest one-day outflow "
-                 "on record (Thu 19)", 6.9, GREY, wgt(6.9, 0.21, 1.45),
-                 w - 14, 8.8)
+                 "on record (Thu 19)", 7.6, GREY, wgt(7.6, 0.24, 1.85),
+                 w - 14, 10.2)
     draw_wrapped(x + 7, y + 143, "US spot BTC ETFs -$582.3m on 19 Nov; "
-                 "about $3.47bn out across November (Farside).", 7.3,
-                 (52, 48, 42), wgt(7.3, 0.20, 1.45), w - 14, 9.4)
+                 "$3.47bn out in November (Farside).", 8.0,
+                 (52, 48, 42), wgt(8.0, 0.24, 1.9), w - 14, 10.8)
 
 
 btc_panel(_px(0), PY1, PW, PH)
@@ -947,10 +955,10 @@ small_panel(_px(4), PY2, PW, PH, s_cricket, "PHILLIPS: 118", GREEN,
             "in one year. Nicholls made 175; New Zealand 368.")
 
 # --------------------------------------------------------- bottom section
-draw_text(M, 818, "WHERE IT HAPPENED", 9.5, INK, wgt(9.5, 0.18, 1.7),
+draw_text(M, 818, "WHERE IT HAPPENED", 9.5, INK, wgt(9.5, 0.20, 1.9),
           tracking=0.6)
 draw_text(352, 818, "ALSO ON FRIDAY 20 NOVEMBER — 27 MORE STORIES", 9.5,
-          INK, wgt(9.5, 0.18, 1.7), tracking=0.4)
+          INK, wgt(9.5, 0.20, 1.9), tracking=0.4)
 fill_rect(M, 824, CW, 1.0, RULE)
 
 MAPX, MAPY, MAPW, MAPH = M, 830, 308, 128
@@ -989,7 +997,7 @@ def _pin(n, lon, lat):
     py = MAPY + (75 - lat) / 135.0 * MAPH
     fill_circle(px, py, 4.6, RED)
     draw_text(px, py + 1.9, str(n), 5.2 if n < 10 else 4.4, WHITE,
-              wgt(5.2, 0.22, 1.3), align='c')
+              wgt(5.2, 0.24, 1.5), align='c')
 
 
 _pin(1, 30.5, 50.2)     # Kyiv
@@ -1010,10 +1018,10 @@ fill_poly([(_sx, _sy - 6), (_sx + 1.8, _sy - 1.8), (_sx + 6, _sy - 1.6),
            (_sx + 2.6, _sy + 1.2), (_sx + 3.8, _sy + 5.6), (_sx, _sy + 2.6),
            (_sx - 3.8, _sy + 5.6), (_sx - 2.6, _sy + 1.2),
            (_sx - 6, _sy - 1.6), (_sx - 1.8, _sy - 1.8)], GOLD)
-draw_text(_sx - 8, _sy + 13.5, "11", 5.2, INK, wgt(5.2, 0.22, 1.3),
+draw_text(_sx - 8, _sy + 13.5, "11", 5.2, INK, wgt(5.2, 0.24, 1.5),
           align='c')
 draw_text(MAPX + 4, MAPY + MAPH - 5, "Pins 1-13 as numbered on the page; "
-          "11 = Mercury, off the map.", 6.2, GREY, wgt(6.2, 0.21, 1.35))
+          "11 = Mercury, off the map.", 7.0, GREY, wgt(7.0, 0.23, 1.6))
 
 ALSO = [
     (14, "New York: Michigan sentiment 51.5 final; inflation hopes 3.7%", "C"),
@@ -1045,41 +1053,66 @@ ALSO = [
     (40, "Antalya: 'failure' banner interrupts COP31 president", "C"),
 ]
 for _i, (_n, _txt, _tag) in enumerate(ALSO):
-    _colx = 352 if _i < 14 else 684
-    _yy = 842 + (_i % 14) * 8.8
-    _line = "%d %s (%s)" % (_n, _txt, _tag)
-    draw_text(_colx, _yy, _line, 7.3, (52, 48, 42), wgt(7.3, 0.20, 1.45))
-    draw_text(_colx, _yy, str(_n), 7.3, RED, wgt(7.3, 0.21, 1.55))
+    _colx = 352 if _i < 14 else 680
+    _yy = 838 + (_i % 14) * 9.5
+    # One pass per glyph: the number in red, the rest in ink beside it.
+    _num = str(_n)
+    draw_text(_colx, _yy, _num, 8.0, RED, wgt(8.0, 0.24, 1.9))
+    draw_text(_colx + text_width(_num + " ", 8.0), _yy,
+              "%s (%s)" % (_txt, _tag), 8.0, (52, 48, 42),
+              wgt(8.0, 0.24, 1.85))
 
 # How sure strip
-_hx = draw_text(M, 972, "HOW SURE:", 7.4, INK, wgt(7.4, 0.21, 1.55),
+_hx = draw_text(M, 972, "HOW SURE:", 8.0, INK, wgt(8.0, 0.23, 1.85),
                 tracking=0.3)
 draw_text(_hx + 4, 972, "CONFIRMED = two or more outlets or official "
           "data · REPORTED = one source or an official claim · Counts "
-          "are officials' counts where stated.", 7.4, GREY,
-          wgt(7.4, 0.20, 1.45))
+          "are officials' counts where stated.", 8.0, GREY,
+          wgt(8.0, 0.23, 1.8))
 
-# Date check box
+# Date check box: red label and ink body are separate single passes -
+# the label is never overdrawn on top of the body text.
 outline_rect(M, 978, CW, 34, 1.3, RED)
-draw_wrapped(M + 8, 988.5, "DATE CHECK — Left out on purpose, each first "
-             "reported before or after Friday: the Trump-Xi-Putin "
-             "declaration in Shenzhen (Thu 19) · Anthropic's 17% Nasdaq "
-             "debut (Thu 19) · the Houthi strike on Riyadh's PIF Tower "
-             "(Thu 19) · Bukele's third-term filing (Thu 19) · Fiji's "
-             "disaster and Tonga's emergency declarations (Thu 19) · "
-             "Denmark's 109-0 Greenland vote (Thu 19) · Kenya's last "
-             "Ebola patient went home (11 Nov). Not yet: BepiColombo's "
-             "orbit burn (Sat 21) and any final COP31 text (Sat). The "
-             "Hormuz tanker-mine claim could not be verified and is not "
-             "shown as fact.", 7.2, (52, 48, 42), wgt(7.2, 0.20, 1.45),
-             CW - 16, 9.3)
-draw_text(M + 8, 988.5, "DATE CHECK", 7.2, RED, wgt(7.2, 0.21, 1.55))
+_DC_SIZE = 7.9
+_DC_W = wgt(_DC_SIZE, 0.23, 1.8)
+_DC_LABEL = "DATE CHECK — "
+_DC_LABEL_W = text_width(_DC_LABEL, _DC_SIZE)
+draw_text(M + 8, 988.5, "DATE CHECK —", _DC_SIZE, RED,
+          wgt(_DC_SIZE, 0.24, 1.85))
+_DC_BODY = ("Left out on purpose, each first reported before or after "
+            "Friday: the Trump-Xi-Putin declaration in Shenzhen (Thu 19) "
+            "· Anthropic's 17% Nasdaq debut (Thu 19) · the Houthi strike "
+            "on Riyadh's PIF Tower (Thu 19) · Bukele's third-term filing "
+            "(Thu 19) · Fiji's disaster and Tonga's emergency declarations "
+            "(Thu 19) · Denmark's 109-0 Greenland vote (Thu 19) · Kenya's "
+            "last Ebola patient went home (11 Nov). Not yet: "
+            "BepiColombo's orbit burn (Sat 21) and any final COP31 text "
+            "(Sat). The Hormuz tanker-mine claim is unverified and is "
+            "not shown as fact.")
+_DC_LINES = []
+_DC_CUR = ''
+_DC_MAXW = CW - 16 - _DC_LABEL_W
+for _wd in _DC_BODY.split(' '):
+    _trial = _wd if not _DC_CUR else _DC_CUR + ' ' + _wd
+    if text_width(_trial, _DC_SIZE) <= _DC_MAXW or not _DC_CUR:
+        _DC_CUR = _trial
+    else:
+        _DC_LINES.append(_DC_CUR)
+        _DC_CUR = _wd
+        _DC_MAXW = CW - 16
+if _DC_CUR:
+    _DC_LINES.append(_DC_CUR)
+_DC_YY = 988.5
+for _li, _ln in enumerate(_DC_LINES[:3]):
+    draw_text(M + 8 + (_DC_LABEL_W if _li == 0 else 0), _DC_YY, _ln,
+              _DC_SIZE, (52, 48, 42), _DC_W)
+    _DC_YY += 10.2
 
 # Sources line
 draw_text(M, 1021, "Sources: Reuters · AP · BBC · AFP · IMD · Al Jazeera "
           "· ANSA · Kitco · Farside · official data. All 40 stories "
           "happened, or were first reported, on Friday 20 November 2026. "
-          "Original drawings.", 7.0, GREY, wgt(7.0, 0.20, 1.4))
+          "Original drawings.", 7.6, GREY, wgt(7.6, 0.22, 1.7))
 
 
 def main():
