@@ -2,8 +2,11 @@
 """news-image-20261120: 'The World in One Day' - Friday 20 November 2026.
 
 A one-page newspaper front sheet summing up one day of world news.
-Everything is drawn as flat vector geometry in code: filled polygons,
-circles and thick strokes for the illustrations. Text is set in two
+Everything is drawn as vector geometry in code: filled polygons,
+circles and thick strokes for the illustrations, with per-scanline
+gradient fills for the skies, seas, coins and metalwork - every
+shape is drawn exactly once at native scale, so every edge is a
+single crisp edge. Text is set in two
 real typefaces - Playfair Display (Bold for the masthead, headlines
 and headlines; Italic for the dek) and Open Sans (Regular, Bold
 and ExtraBold for bodies, labels, bands and figure numerals) - whose
@@ -11,9 +14,9 @@ glyph outline
 contours and advance widths were extracted from the font files at
 build time and are embedded below as data. The rasterizer is original
 code: contours are flattened and scanline-filled under the nonzero
-winding rule on a 4096x4096 canvas, then box-downscaled to 1024x1024
-so edges are smooth. Python standard library only. Fully
-deterministic.
+winding rule on an 8192x8192 canvas, then box-downscaled in one pass
+to 1024x1024 so edges are smooth. Python standard library only.
+Fully deterministic.
 """
 
 import math
@@ -22,7 +25,7 @@ import struct
 import zlib
 
 # ------------------------------------------------------------------ canvas
-SS = 4                      # supersampling factor
+SS = 8                      # supersampling factor
 W = 1024                    # final width / height
 W4 = W * SS                 # render width / height
 
@@ -45,7 +48,11 @@ SEA = (92, 138, 170)
 SAND = (219, 196, 150)
 WHITE = (255, 255, 255)
 
-FB = bytearray(bytes(PAPER) * (W4 * W4))
+FB = bytearray(W4 * W4 * 3)
+_prow = bytes(PAPER) * W4
+for _yy in range(W4):
+    FB[_yy * W4 * 3:(_yy + 1) * W4 * 3] = _prow
+del _prow, _yy
 
 
 def _span(y, x0, x1, c):
@@ -105,6 +112,62 @@ def fill_ellipse(cx, cy, rx, ry, c):
             continue
         dx = int(rx * math.sqrt(d2))
         _span(yy, int(cx - dx), int(cx + dx), c)
+
+
+def _lerp(c0, c1, t):
+    return (int(round(c0[0] + (c1[0] - c0[0]) * t)),
+            int(round(c0[1] + (c1[1] - c0[1]) * t)),
+            int(round(c0[2] + (c1[2] - c0[2]) * t)))
+
+
+def vgrad(x, y, w, h, c0, c1):
+    """Vertical gradient fill of a rect: horizontal bands, each row
+    band drawn once - a single shape with single edges, the colour
+    easing from c0 at the top to c1 at the bottom."""
+    steps = max(2, int(h * 2))
+    bh = h / steps
+    for i in range(steps):
+        fill_rect(x, y + i * bh, w, bh + 0.02,
+                  _lerp(c0, c1, (i + 0.5) / steps))
+
+
+def grad_circle(cx, cy, r, c0, c1):
+    """Circle filled with a vertical gradient: every scanline is
+    drawn once in its own lerped colour - crisp single outline,
+    light easing from c0 at the top to c1 at the bottom."""
+    cx *= SS
+    cy *= SS
+    r *= SS
+    y0 = int(cy - r)
+    y1 = int(cy + r)
+    r2 = r * r
+    for yy in range(y0, y1 + 1):
+        dy = yy - cy
+        d2 = r2 - dy * dy
+        if d2 < 0:
+            continue
+        dx = int(math.sqrt(d2))
+        t = (yy - (cy - r)) / (2.0 * r)
+        _span(yy, int(cx - dx), int(cx + dx), _lerp(c0, c1, t))
+
+
+def grad_ellipse(cx, cy, rx, ry, c0, c1):
+    """Ellipse filled with a vertical gradient, same one-pass
+    per-scanline construction as grad_circle."""
+    cx *= SS
+    cy *= SS
+    rx *= SS
+    ry *= SS
+    y0 = int(cy - ry)
+    y1 = int(cy + ry)
+    for yy in range(y0, y1 + 1):
+        dy = (yy - cy) / ry
+        d2 = 1.0 - dy * dy
+        if d2 < 0:
+            continue
+        dx = int(rx * math.sqrt(d2))
+        t = (yy - (cy - ry)) / (2.0 * ry)
+        _span(yy, int(cx - dx), int(cx + dx), _lerp(c0, c1, t))
 
 
 def fill_poly(pts, c):
@@ -950,11 +1013,15 @@ _SOLID = bytes(max(0, min(255, round(255.0 * (v / 255.0) ** 1.28)))
 
 
 def downscale():
-    """Box-downscale the 4096 canvas to 1024 with SWAR big-int sums:
-    each byte is spread into a 16-bit lane, rows and neighbours are added
-    in parallel, then shifted back - exact 4x4 means, C speed."""
+    """Box-downscale the render canvas to 1024 with SWAR big-int
+    sums: each byte is spread into a 16-bit lane, rows and neighbours
+    are added in parallel, then shifted back - exact SSxSS means in
+    a single pass, C speed. SS is a power of two, so the mean is a
+    pure shift and no lane can overflow (max 255 * 64 = 16320)."""
     out = bytearray(W * W * 3)
     stride4 = W4 * 3
+    shift = 2 * (SS.bit_length() - 1)       # log2(SS * SS)
+    gst = 6 * SS                            # gather stride in bytes
     for oy in range(W):
         ints = []
         for dy in range(SS):
@@ -963,16 +1030,20 @@ def downscale():
             ba = bytearray(len(row) * 2)
             ba[0::2] = row
             ints.append(int.from_bytes(ba, 'little'))
-        v = ints[0] + ints[1] + ints[2] + ints[3]
-        h = v + (v >> 48) + (v >> 96) + (v >> 144)
-        res = (h >> 4).to_bytes(len(row) * 2, 'little')
-        # Lane 3p+c of the sum holds buffer pixels p..p+3, so output
-        # pixel p (buffer pixels 4p..4p+3) sits at lane 12p+c: gather
-        # each channel with a 24-byte stride, then interleave.
+        v = ints[0]
+        for t in ints[1:]:
+            v += t
+        h = v
+        for k in range(1, SS):
+            h += v >> (48 * k)
+        res = (h >> shift).to_bytes(len(row) * 2, 'little')
+        # Lane 3*SS*p+c of the sum holds buffer pixels SS*p..SS*p+SS-1
+        # of channel c, so output pixel p sits at byte 6*SS*p + 2c:
+        # gather each channel with a 6*SS-byte stride, then interleave.
         orow = bytearray(W * 3)
-        orow[0::3] = res[0::24]
-        orow[1::3] = res[2::24]
-        orow[2::3] = res[4::24]
+        orow[0::3] = res[0::gst]
+        orow[1::3] = res[2::gst]
+        orow[2::3] = res[4::gst]
         out[oy * W * 3:(oy + 1) * W * 3] = orow.translate(_SOLID)
     return bytes(out)
 
@@ -1122,19 +1193,30 @@ def zig_arrow(pts, w, c, hl, hw):
 
 
 def scene_kyiv(bx, by, bw, bh):
-    fill_rect(bx, by, bw, bh, NAVY)
+    # Night sky as one gradient shape, deep at the top and lifting
+    # toward the horizon; the moon is a single gradient disc.
+    vgrad(bx, by, bw, bh, (16, 23, 44), (46, 58, 90))
     _stars(bx, by, bw, bh, 34, (198, 208, 228))
-    fill_circle(bx + bw - 34, by + 32, 7, (232, 229, 198))
-    # city blocks with lit windows
+    grad_circle(bx + bw - 34, by + 32, 7, (242, 239, 214),
+                (206, 200, 160))
+    # city blocks with lit windows - each block one gradient
+    # silhouette, windows in two warm tones
     for i, (ox, hh) in enumerate([(6, 26), (34, 34), (66, 22), (238, 30),
                                   (268, 24), (294, 36)]):
-        fill_rect(bx + ox, by + bh - 14 - hh, 24, hh, (9, 11, 24))
+        vgrad(bx + ox, by + bh - 14 - hh, 24, hh, (20, 25, 44),
+              (7, 9, 18))
         for k in range(4):
             fill_rect(bx + ox + 4 + (k % 2) * 10,
                       by + bh - 20 - hh + (k // 2) * 10 + (i % 3) * 2,
-                      4, 5, (238, 196, 92))
-    # river and bridge
-    fill_rect(bx, by + bh - 14, bw, 14, (38, 66, 98))
+                      4, 5, (238, 196, 92) if (k + i) % 2 == 0
+                      else (250, 216, 134))
+    # river and bridge - the water is one gradient band with two
+    # light streaks lying on it
+    vgrad(bx, by + bh - 14, bw, 14, (52, 84, 118), (30, 54, 84))
+    thick_line(bx + 30, by + bh - 6, bx + 96, by + bh - 6, 1.1,
+               (128, 164, 202))
+    thick_line(bx + 190, by + bh - 9.5, bx + 268, by + bh - 9.5, 1.1,
+               (110, 146, 186))
     deck = by + bh - 20
     fill_rect(bx + 8, deck, bw - 16, 3.4, (14, 16, 28))
     for tx in (bx + 70, bx + bw - 70):
@@ -1160,24 +1242,29 @@ def scene_kyiv(bx, by, bw, bh):
 
 
 def scene_akvan(bx, by, bw, bh):
-    fill_rect(bx, by, bw, bh, SKY)
+    # Sky and sea as gradient shapes; the clouds are single gradient
+    # ellipses, lit on top; the storm spiral alternates two tones so
+    # its bands separate.
+    vgrad(bx, by, bw, bh, (186, 210, 228), (228, 238, 243))
     for (ex, ey, rx, ry) in [(60, 30, 52, 10), (170, 24, 66, 12),
                              (268, 32, 48, 9)]:
-        fill_ellipse(bx + ex, by + ey, rx, ry, (148, 158, 168))
+        grad_ellipse(bx + ex, by + ey, rx, ry, (238, 242, 245),
+                     (164, 174, 186))
     cx, cy = bx + bw * 0.60, by + bh * 0.54
-    for r in (7, 13, 19, 25):
-        polyline(arc_pts(cx, cy, r, r * 0.76, 25, 305), 2.3, (64, 86, 108))
-    fill_rect(bx, by + bh - 22, bw, 22, SEA)
+    for j, r in enumerate((7, 13, 19, 25)):
+        polyline(arc_pts(cx, cy, r, r * 0.76, 25, 305), 2.3,
+                 (64, 86, 108) if j % 2 == 0 else (96, 120, 142))
+    vgrad(bx, by + bh - 22, bw, 22, (104, 148, 178), (60, 102, 140))
     polyline(arc_pts(bx + 40, by + bh - 16, 60, 7, 180, 360), 1.4, WHITE)
     polyline(arc_pts(bx + 190, by + bh - 12, 70, 8, 180, 360), 1.4, WHITE)
     # bending palms
     for px, lean in [(36, 10), (66, 14)]:
         thick_line(bx + px, by + bh - 18, bx + px + lean, by + 34, 2.6, BROWN)
-        for a in (200, 250, 300, 340):
+        for fi, a in enumerate((200, 250, 300, 340)):
             ar = math.radians(a)
             polyline(arc_pts(bx + px + lean + 10 * math.cos(ar),
                              by + 34 + 6 * math.sin(ar), 11, 6, a - 40, a + 30),
-                     1.7, GREEN)
+                     1.7, GREEN if fi % 2 == 0 else (88, 132, 74))
     for i in range(14):
         rx = bx + 190 + (i * 23.7) % 110
         ry = by + 26 + (i * 13.1) % 34
@@ -1190,16 +1277,16 @@ def scene_markets(bx, by, bw, bh):
     # single glance. The old bar silhouettes are gone so nothing
     # fights the arrow; the yen coin stays at top right, clear of
     # the arrow's path and of its head.
-    fill_rect(bx, by, bw, bh, (30, 34, 46))
+    vgrad(bx, by, bw, bh, (40, 46, 64), (21, 25, 37))
     _grid(bx, by, 4, bw - 4, 27, 74, 31, 11.75, (56, 62, 78))
     zig_arrow([(bx + 12, by + 31), (bx + 64, by + 38),
                (bx + 90, by + 32.5), (bx + 142, by + 46),
                (bx + 168, by + 40), (bx + 222, by + 55),
                (bx + 246, by + 64)], 5.0, RED, 15, 8)
-    # yen coin
+    # yen coin - concentric gradient discs, lit from the top
     cx, cy = bx + bw - 40, by + 34
-    fill_circle(cx, cy, 12, GOLD)
-    fill_circle(cx, cy, 9.6, (198, 152, 44))
+    grad_circle(cx, cy, 12, (206, 160, 54), (156, 114, 30))
+    grad_circle(cx, cy, 9.6, (224, 180, 72), (182, 138, 40))
     thick_line(cx - 4.4, cy - 6.4, cx, cy - 0.6, 1.8, (84, 60, 8))
     thick_line(cx + 4.4, cy - 6.4, cx, cy - 0.6, 1.8, (84, 60, 8))
     thick_line(cx, cy - 0.6, cx, cy + 6.6, 1.8, (84, 60, 8))
@@ -1300,11 +1387,11 @@ def s_btc(bx, by, bw, bh):
     # strip over a faint grid - the fall under $60k is the picture.
     # The big coin stays at left; the arrow starts clear of it and
     # owns the rest of the band, ending in a big down-right head.
-    fill_rect(bx, by, bw, bh, (26, 25, 30))
+    vgrad(bx, by, bw, bh, (36, 34, 42), (17, 16, 21))
     _grid(bx, by, 42, bw - 3, 19.5, 34.5, 13.7, 7.5, (56, 53, 62))
     cx, cy = bx + 27, by + 26.5
-    fill_circle(cx, cy, 9.2, GOLD)
-    fill_circle(cx, cy, 7.1, (200, 154, 46))
+    grad_circle(cx, cy, 9.2, (216, 170, 58), (160, 118, 32))
+    grad_circle(cx, cy, 7.1, (230, 190, 82), (184, 142, 42))
     draw_text(cx, cy + 5.0, "B", 14, (84, 60, 8), 'SANS_B', align='c')
     thick_line(cx - 2.8, cy - 8.2, cx - 2.8, cy + 8.2, 1.4, (84, 60, 8))
     zig_arrow([(bx + 47, by + 19.8), (bx + 72, by + 24.0),
@@ -1316,12 +1403,12 @@ def s_btc(bx, by, bw, bh):
 def s_cop(bx, by, bw, bh):
     # One bold subject: a large globe filling the strip, crossed by a
     # bold red X - the climate talks ended with no deal.
-    fill_rect(bx, by, bw, bh, (206, 224, 232))
+    vgrad(bx, by, bw, bh, (218, 233, 241), (190, 212, 225))
     cx, cy = bx + bw / 2.0, by + 26.5
     fill_ellipse(cx, by + 34.0, 17, 0.9, (168, 188, 200))
-    fill_circle(cx, cy, 9.2, BLUE)
+    grad_circle(cx, cy, 9.2, (92, 142, 198), (42, 90, 150))
     fill_ellipse(cx - 3.8, cy - 2.8, 4.6, 3.2, GREEN)
-    fill_ellipse(cx + 4.0, cy + 2.4, 5.0, 3.4, GREEN)
+    fill_ellipse(cx + 4.0, cy + 2.4, 5.0, 3.4, (76, 124, 66))
     fill_ellipse(cx - 0.6, cy + 5.8, 3.2, 2.1, GREEN)
     thick_line(cx - 11, cy - 7.5, cx + 11, cy + 7.5, 2.8, RED)
     thick_line(cx + 11, cy - 7.5, cx - 11, cy + 7.5, 2.8, RED)
@@ -1330,30 +1417,36 @@ def s_cop(bx, by, bw, bh):
 def s_ukeu(bx, by, bw, bh):
     # One bold subject: the two flags, as large as the strip allows,
     # side by side.
-    fill_rect(bx, by, bw, bh, TINT)
-    fill_rect(bx + 8, by + 17.5, 70, 17.5, BLUE)
+    vgrad(bx, by, bw, bh, (244, 238, 222), (236, 228, 206))
+    vgrad(bx + 8, by + 17.5, 70, 17.5, (62, 100, 152), (36, 68, 116))
     polyline([(bx + 9.3, by + 18.8), (bx + 76.7, by + 33.7)], 2.8, WHITE)
     polyline([(bx + 9.3, by + 33.7), (bx + 76.7, by + 18.8)], 2.8, WHITE)
     fill_rect(bx + 38, by + 17.5, 10, 17.5, RED)
     fill_rect(bx + 8, by + 23.2, 70, 6, RED)
-    fill_rect(bx + 110, by + 17.5, 70, 17.5, BLUE)
-    for a in range(0, 360, 30):
+    vgrad(bx + 110, by + 17.5, 70, 17.5, (62, 100, 152), (36, 68, 116))
+    for si, a in enumerate(range(0, 360, 30)):
         ar = math.radians(a)
         fill_circle(bx + 145 + 6.6 * math.cos(ar),
-                    by + 26.25 + 6.6 * math.sin(ar), 2.0, GOLD)
+                    by + 26.25 + 6.6 * math.sin(ar), 2.0,
+                    GOLD if si % 2 == 0 else (216, 170, 60))
 
 
 def s_icj(bx, by, bw, bh):
     # One bold subject: a courthouse silhouette spanning the strip -
     # pediment, four heavy columns and a base step, all in one dark
     # ink tone so it reads instantly against the pale ground.
-    fill_rect(bx, by, bw, bh, (233, 227, 211))
+    vgrad(bx, by, bw, bh, (239, 234, 220), (224, 217, 198))
     ink = (74, 66, 56)
     fill_poly([(bx + 28, by + 22.5), (bx + 94, by + 17.3),
                (bx + 160, by + 22.5)], ink)
+    # a lit ridge line along the pediment's slopes and a pale
+    # capital strip on each column - stone shading, drawn once
+    polyline([(bx + 29.5, by + 22.1), (bx + 94, by + 17.8),
+              (bx + 158.5, by + 22.1)], 0.9, (128, 118, 102))
     fill_rect(bx + 24, by + 22.5, 140, 3.2, ink)
     for i in range(4):
         fill_rect(bx + 34 + i * 32, by + 25.7, 11, 8.0, ink)
+        fill_rect(bx + 34 + i * 32, by + 25.7, 11, 1.6, (128, 118, 102))
     fill_rect(bx + 24, by + 33.4, 140, 2.4, ink)
 
 
@@ -1364,10 +1457,10 @@ def s_japan(bx, by, bw, bh):
     # grid - inflation quickened to 2.3%, so the arrow rises with
     # small dips but a clear net climb, ending in a big up-right
     # head. Same arrow language as the Bitcoin and sell-off charts.
-    fill_rect(bx, by, bw, bh, TINT)
-    fill_rect(bx + 8, by + 18, 64, 17, WHITE)
+    vgrad(bx, by, bw, bh, (244, 238, 222), (236, 228, 206))
+    vgrad(bx + 8, by + 18, 64, 17, (255, 255, 255), (238, 236, 230))
     outline_rect(bx + 8, by + 18, 64, 17, 1.0, (150, 145, 135))
-    fill_circle(bx + 40, by + 26.5, 6.3, RED)
+    grad_circle(bx + 40, by + 26.5, 6.3, (198, 54, 46), (162, 30, 26))
     _grid(bx, by, 82, bw - 3, 19.5, 34.5, 13.7, 7.5, (208, 201, 184))
     zig_arrow([(bx + 88, by + 33.6), (bx + 112, by + 28.6),
                (bx + 124, by + 31.1), (bx + 146, by + 25.1),
@@ -1378,8 +1471,14 @@ def s_japan(bx, by, bw, bh):
 def s_italy(bx, by, bw, bh):
     # One bold subject: a strike crowd - big heads and bodies, two
     # demonstrators holding placards high.
-    fill_rect(bx, by, bw, bh, SKY)
-    fill_rect(bx, by + bh - 5, bw, 5, (150, 140, 120))
+    vgrad(bx, by, bw, bh, (208, 226, 237), (186, 206, 224))
+    vgrad(bx, by + bh - 5, bw, 5, (160, 150, 128), (136, 126, 104))
+    # a second, smaller rank of heads behind the front four -
+    # crowd depth, drawn before the front rank so it sits behind
+    for cx0 in (49, 92, 137):
+        cx = bx + cx0
+        fill_circle(cx, by + 27.5, 3.6, (62, 60, 54))
+        thick_line(cx, by + 30, cx, by + 34, 3.0, (62, 60, 54))
     for i, cx0 in enumerate([28, 70, 114, 160]):
         cx = bx + cx0
         if i in (0, 2):
@@ -1396,11 +1495,14 @@ def s_italy(bx, by, bw, bh):
 def s_gold(bx, by, bw, bh):
     # One bold subject: a 3-2-1 pyramid of big gold bars filling
     # the strip.
-    fill_rect(bx, by, bw, bh, (35, 33, 29))
+    vgrad(bx, by, bw, bh, (46, 43, 37), (25, 23, 20))
 
     def bar(x, ybase):
-        fill_rect(x, ybase - 6, 44, 6, GOLD)
-        fill_rect(x, ybase - 6, 44, 1.2, (230, 190, 90))
+        # ingot: gradient front face, a shaded right edge and a
+        # bright top face - each drawn once
+        vgrad(x, ybase - 6, 44, 6, (208, 160, 54), (158, 116, 32))
+        fill_rect(x + 39, ybase - 6, 5, 6, (138, 100, 26))
+        fill_rect(x, ybase - 6, 44, 1.2, (238, 204, 102))
     for x in (22, 68, 114):
         bar(bx + x, by + 35.5)
     for x in (45, 91):
@@ -1411,14 +1513,20 @@ def s_gold(bx, by, bw, bh):
 def s_mercury(bx, by, bw, bh):
     # One bold subject: the planet disc and the probe beside it,
     # both drawn large - disc at left, probe with two solar wings.
-    fill_rect(bx, by, bw, bh, NAVY)
+    vgrad(bx, by, bw, bh, (30, 40, 68), (15, 21, 38))
     _stars(bx, by, bw, bh, 8, (190, 200, 220))
-    fill_circle(bx + 40, by + 26.5, 9.4, (172, 152, 130))
+    grad_circle(bx + 40, by + 26.5, 9.4, (198, 178, 150),
+                (134, 114, 90))
     for (ox, oy, r) in [(-3, -2, 2.4), (3.5, 3, 3.0), (0.5, -5, 1.8)]:
-        fill_circle(bx + 40 + ox, by + 26.5 + oy, r, (146, 126, 104))
-    fill_rect(bx + 92, by + 20, 24, 13, (86, 130, 190))
-    fill_rect(bx + 140, by + 20, 24, 13, (86, 130, 190))
-    fill_rect(bx + 118, by + 22, 20, 9, WHITE)
+        fill_circle(bx + 40 + ox, by + 26.5 + oy, r, (124, 106, 82))
+    vgrad(bx + 92, by + 20, 24, 13, (112, 158, 216), (66, 106, 164))
+    vgrad(bx + 140, by + 20, 24, 13, (112, 158, 216), (66, 106, 164))
+    for px0 in (92, 140):
+        thick_line(bx + px0 + 8, by + 20, bx + px0 + 8, by + 33, 0.8,
+                   (52, 84, 130))
+        thick_line(bx + px0 + 16, by + 20, bx + px0 + 16, by + 33, 0.8,
+                   (52, 84, 130))
+    vgrad(bx + 118, by + 22, 20, 9, (252, 252, 250), (204, 204, 198))
     thick_line(bx + 116, by + 26.5, bx + 118, by + 26.5, 2.4, WHITE)
     thick_line(bx + 138, by + 26.5, bx + 140, by + 26.5, 2.4, WHITE)
     thick_line(bx + 128, by + 22, bx + 128, by + 19.9, 1.6, WHITE)
@@ -1428,7 +1536,7 @@ def s_mercury(bx, by, bw, bh):
 def s_sudan(bx, by, bw, bh):
     # One bold subject: a quadcopter drone silhouette, drawn large -
     # body, four long arms, four wide rotor discs.
-    fill_rect(bx, by, bw, bh, SAND)
+    vgrad(bx, by, bw, bh, (228, 208, 162), (204, 180, 130))
     cx, cy = bx + bw / 2.0, by + 27
     dark = (70, 62, 54)
     thick_line(cx - 8, cy - 2, cx - 28, cy - 5.5, 3.0, INK)
@@ -1436,19 +1544,23 @@ def s_sudan(bx, by, bw, bh):
     thick_line(cx - 8, cy + 2.5, cx - 28, cy + 5.5, 3.0, INK)
     thick_line(cx + 8, cy + 2.5, cx + 28, cy + 5.5, 3.0, INK)
     for (ox, oy) in [(-31, -6), (31, -6), (-31, 6), (31, 6)]:
-        fill_ellipse(cx + ox, cy + oy, 10.5, 2.6, dark)
+        grad_ellipse(cx + ox, cy + oy, 10.5, 2.6, (104, 96, 86),
+                     (56, 50, 44))
     fill_rect(cx - 11, cy - 4, 22, 8, INK)
+    fill_rect(cx - 11, cy - 4, 22, 2.4, (92, 88, 82))
     fill_circle(cx, cy + 5.8, 2.2, dark)
 
 
 def s_cricket(bx, by, bw, bh):
     # One bold subject: a big diagonal bat, a red ball and the
     # stumps, filling the strip.
-    fill_rect(bx, by, bw, bh, (88, 132, 72))
-    fill_rect(bx + 24, by + 30, 140, 5.5, SAND)
+    vgrad(bx, by, bw, bh, (104, 148, 86), (74, 118, 58))
+    vgrad(bx + 24, by + 30, 140, 5.5, (228, 206, 160), (204, 180, 130))
     thick_line(bx + 46, by + 21.5, bx + 86, by + 30, 10, (219, 193, 142))
+    thick_line(bx + 46, by + 21.5, bx + 86, by + 30, 4.5,
+               (238, 216, 172))
     thick_line(bx + 38, by + 20.6, bx + 46, by + 21.5, 3.4, (96, 64, 38))
-    fill_circle(bx + 118, by + 25, 6.5, RED)
+    grad_circle(bx + 118, by + 25, 6.5, (210, 66, 56), (154, 32, 28))
     polyline(arc_pts(bx + 118, by + 25, 4.2, 5.4, 300, 60), 1.0, WHITE)
     for i in range(3):
         fill_rect(bx + 152 + i * 6, by + 20, 2.6, 13, (240, 230, 200))
