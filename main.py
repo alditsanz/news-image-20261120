@@ -822,8 +822,12 @@ FONT_DATA = {
 # reads slanted and broken. SERIF_L is SERIF with digits 0-9 swapped
 # for the font's own lining figures (the .lf glyphs from the same
 # TTF, extracted the same way): every digit stands 708-722 tall on
-# the baseline, optically aligned with the caps beside it. Only
-# panel 5's headline opts into SERIF_L this round.
+# the baseline, optically aligned with the caps beside it. Panel
+# 5's headline opted in first (round 12); round 13 extends SERIF_L
+# to every remaining SERIF-set digit string on the page - the
+# masthead date and the panel 4/8/10/12/13 headlines - after a full
+# audit: everything else with digits is set in the sans faces
+# (lining already) and the SERIF_I dek carries no digits.
 _SERIF_LF = {
   '0': (653, (((327, 722, 1), (410, 722, 0), (535, 636, 0), (604, 475, 0), (604, 360, 1), (604, 248, 0), (533, 80, 0), (407, -14, 0), (326, -14, 1), (243, -14, 0), (118, 72, 0), (49, 234, 0), (49, 348, 1), (49, 460, 0), (120, 628, 0), (246, 722, 0)), ((323, 704, 1), (262, 704, 0), (203, 522, 0), (203, 352, 1), (203, 177, 0), (271, 4, 0), (330, 4, 1), (391, 4, 0), (450, 186, 0), (450, 356, 1), (450, 531, 0), (382, 704, 0)))),
   '1': (390, (((285, 718, 1), (285, 98, 1), (285, 67, 0), (297, 34, 0), (329, 21, 0), (357, 21, 1), (357, 0, 1), (335, 1, 0), (257, 4, 0), (215, 4, 1), (166, 4, 0), (70, 1, 0), (43, 0, 1), (43, 21, 1), (81, 21, 0), (123, 37, 0), (141, 78, 0), (141, 116, 1), (141, 558, 1), (141, 593, 0), (121, 626, 0), (73, 636, 0), (31, 636, 1), (31, 657, 1), (129, 669, 0), (247, 702, 0)),)),
@@ -1120,9 +1124,9 @@ draw_text(M + 47, 95, "20", 48, WHITE, 'SANS_X', tracking=1.0,
           align='c')
 draw_text(M + 47, 110, "FRI · 2026", 13, WHITE, 'SANS_X', tracking=0.6,
           align='c')
-_MS = fit_size("Friday 20 November 2026", 96, 'SERIF', W - 132 - M - 4,
+_MS = fit_size("Friday 20 November 2026", 96, 'SERIF_L', W - 132 - M - 4,
                0.2)
-draw_text(132, 100, "Friday 20 November 2026", _MS, INK, 'SERIF',
+draw_text(132, 100, "Friday 20 November 2026", _MS, INK, 'SERIF_L',
           tracking=0.2)
 fill_rect(M, 121, CW, 1.4, INK)
 
@@ -1154,16 +1158,25 @@ _colw = CW / 6.0
 for _i, (_num, _c1, _c2) in enumerate(FIGS):
     _x = M + _i * _colw
     if _i:
-        fill_rect(_x - 9, 168, 1.6, 55, RED)
-    # Numerals in Open Sans ExtraBold (the model's figure treatment:
-    # a heavy grotesque sans), baseline 193 - ink 166-193, comma
-    # tails to ~196, clear of the label above and the captions below.
-    # Fitted to _colw - 13 so the widest numerals (370,000, $58,678)
-    # stop >= 4 px short of the next cell's divider at _colw - 9.
-    draw_text(_x, 193, _num, fit_size(_num, 37, 'SANS_X', _colw - 13,
-              0.2, 24), INK, 'SANS_X', tracking=0.2)
-    draw_text(_x, 209.5, _c1, 11.5, DARK, 'SANS', tracking=0.3)
-    draw_text(_x, 222.5, _c2, 11.5, DARK, 'SANS', tracking=0.3)
+        fill_rect(_x, 168, 1.6, 55, RED)
+    # Round 13 re-set: the ExtraBold numerals read too heavy, so the
+    # strip is recomposed around Open Sans Bold at the same 37 size.
+    # Bold advances are narrower, so each cell is now centred as a
+    # block - numeral and both caption lines on the cell centre -
+    # and the dividers move to the true cell boundaries, giving the
+    # widest numerals (370,000 / 100,000, 138.7 wide) a symmetric
+    # 12.3 px clearance to each divider. The fit guard (_colw - 24)
+    # keeps >= 12 px total clearance if a numeral ever grows.
+    # Baseline 193 - ink 166-193, comma tails to ~196, clear of the
+    # label above and the captions below.
+    _cx = _x + _colw / 2.0
+    draw_text(_cx, 193, _num, fit_size(_num, 37, 'SANS_B',
+              _colw - 24, 0.2, 24), INK, 'SANS_B', tracking=0.2,
+              align='c')
+    draw_text(_cx, 209.5, _c1, 11.5, DARK, 'SANS', tracking=0.3,
+              align='c')
+    draw_text(_cx, 222.5, _c2, 11.5, DARK, 'SANS', tracking=0.3,
+              align='c')
 
 # Region bar: honest counts, summing to 31
 REGIONS = [
@@ -1690,7 +1703,7 @@ def btc_panel(x, y, w, h):
     draw_region(x + 7, y + 50, "4 · WORLD · CRYPTO · REUTERS · C", w - 14,
                 size=10.5, floor=10.5)
     draw_wrapped(x + 7, y + 70, "Bitcoin breaks below $60,000", 22, INK,
-                 'SERIF', w - 14, 25)
+                 'SERIF_L', w - 14, 25)
     # Body re-set as one wrapped block at the grid's body size:
     # three even lines (baselines 111 / 125 / 139, pitch 14) fill
     # the panel under the two headline lines.
@@ -1721,7 +1734,8 @@ small_panel(_px(3), PY1, PW, PH, s_icj, "WORLD COURT", INK,
 small_panel(_px(4), PY1, PW, PH, s_japan, "JAPAN: +2.3%", RED,
             "8 · ASIA · ECONOMY · OFFICIAL · C",
             "Japan inflation rises to 2.3%",
-            "Core up 2.2%; December rise to 1.5% in view.")
+            "Core up 2.2%; December rise to 1.5% in view.",
+            hfont='SERIF_L')
 small_panel(_px(0), PY2, PW, PH2, s_italy, "ITALY: STRIKE", RED,
             "9 · EUROPE · LABOUR · ANSA · C",
             "General strike across Italy",
@@ -1733,7 +1747,7 @@ small_panel(_px(1), PY2, PW, PH2, s_gold, "GOLD < $3,600", INK,
             "Gold breaks under $3,600",
             "14-month low; silver also slid under $42 amid "
             "risk-off move.",
-            bsize=12.5)
+            bsize=12.5, hfont='SERIF_L')
 small_panel(_px(2), PY2, PW, PH2, s_mercury, "MERCURY", NAVY,
             "11 · WORLD · SPACE · ESA · C",
             "BepiColombo reaches Mercury — orbit burn Saturday",
@@ -1743,11 +1757,13 @@ small_panel(_px(2), PY2, PW, PH2, s_mercury, "MERCURY", NAVY,
 small_panel(_px(3), PY2, PW, PH2, s_sudan, "SUDAN: DRONE", BROWN,
             "12 · AFRICA · WAR · DABANGA · R",
             "Sudan: drone kills 10",
-            "It hit the Bajoun gold mine in South Kordofan.")
+            "It hit the Bajoun gold mine in South Kordofan.",
+            hfont='SERIF_L')
 small_panel(_px(4), PY2, PW, PH2, s_cricket, "PHILLIPS: 118", GREEN,
             "13 · OCEANIA · CRICTRACKER · C",
             "Phillips hits 118 v India",
-            "A first: hundreds v India in all 3 formats.")
+            "A first: hundreds v India in all 3 formats.",
+            hfont='SERIF_L')
 
 # --------------------------------------------------------- bottom section
 draw_text(M, 780, "WHERE IT HAPPENED", 19, INK, 'SANS_X', tracking=0.6)
