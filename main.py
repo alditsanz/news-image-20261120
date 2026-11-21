@@ -1426,17 +1426,20 @@ def s_btc(bx, by, bw, bh):
     # strip over a faint grid - the fall under $60k is the picture.
     # The big coin stays at left; the arrow starts clear of it and
     # owns the rest of the band, ending in a big down-right head.
+    # Round 14: strip is 27 tall (by+17..by+44), centre by+30.5;
+    # coin and arrow scaled up to fill it.
     vgrad(bx, by, bw, bh, (36, 34, 42), (17, 16, 21))
-    _grid(bx, by, 42, bw - 3, 19.5, 34.5, 13.7, 7.5, (56, 53, 62))
-    cx, cy = bx + 27, by + 26.5
-    grad_circle(cx, cy, 9.2, (216, 170, 58), (160, 118, 32))
-    grad_circle(cx, cy, 7.1, (230, 190, 82), (184, 142, 42))
-    draw_text(cx, cy + 5.0, "B", 14, (84, 60, 8), 'SANS_B', align='c')
-    thick_line(cx - 2.8, cy - 8.2, cx - 2.8, cy + 8.2, 1.4, (84, 60, 8))
-    zig_arrow([(bx + 47, by + 19.8), (bx + 72, by + 24.0),
-               (bx + 86, by + 21.0), (bx + 114, by + 26.8),
-               (bx + 128, by + 23.8), (bx + 150, by + 31.0)],
-              4.4, RED, 11, 5.4)
+    _grid(bx, by, 42, bw - 3, 20, 41, 13.7, 10.5, (56, 53, 62))
+    cx, cy = bx + 27, by + 30.5
+    grad_circle(cx, cy, 12.5, (216, 170, 58), (160, 118, 32))
+    grad_circle(cx, cy, 9.6, (230, 190, 82), (184, 142, 42))
+    draw_text(cx, cy + 6.8, "B", 19, (84, 60, 8), 'SANS_B', align='c')
+    thick_line(cx - 3.8, cy - 11.2, cx - 3.8, cy + 11.2, 1.9,
+               (84, 60, 8))
+    zig_arrow([(bx + 50, by + 21.0), (bx + 76, by + 27.5),
+               (bx + 90, by + 23.0), (bx + 120, by + 31.0),
+               (bx + 134, by + 26.0), (bx + 156, by + 35.0)],
+              5.2, RED, 13.5, 6.5)
 
 
 def s_cop(bx, by, bw, bh):
@@ -1445,83 +1448,89 @@ def s_cop(bx, by, bw, bh):
     # cuffs, and two hands clasped at the band's exact centre -
     # crossed by a precise red X: the deal that never happened.
     # The clasp point is the band centre (cx, cy) = (bx + bw/2,
-    # by + 26.5), the centre of the visible strip under the label
-    # band; the X is centred on the same point, its four arms
-    # computed as centre +/- one equal offset (d) on both axes, so
-    # it is a true 45-degree X, symmetric by construction.
+    # by + 30.5), the centre of the visible strip under the label
+    # band (by+17..by+44 in round 14); the X is centred on the
+    # same point, its four arms computed as centre +/- one equal
+    # offset (d) on both axes, so it is a true 45-degree X,
+    # symmetric by construction. Round 14 re-scales the round-12
+    # drawing about that centre: x x1.15 horizontally, x1.421
+    # vertically (27/19, the strip's growth), strokes x~1.35.
     vgrad(bx, by, bw, bh, (218, 233, 241), (190, 212, 225))
-    cx, cy = bx + bw / 2.0, by + 26.5
-    fill_ellipse(cx, by + 34.6, 37, 1.0, (172, 192, 206))
+    cx, cy = bx + bw / 2.0, by + 30.5
+    fill_ellipse(cx, by + 42.0, 42.5, 1.4, (172, 192, 206))
     NAVY, NAVY_L, NAVY_D = (43, 70, 112), (64, 93, 135), (30, 51, 83)
     CHAR, CHAR_L, CHAR_D = (97, 87, 75), (119, 107, 91), (73, 63, 53)
     CUFF, CUFF_D = (247, 245, 239), (219, 215, 203)
     SKA, SKA_D = (228, 172, 124), (199, 140, 94)      # left hand
     SKB, SKB_D = (218, 158, 108), (188, 128, 80)      # right hand
     # --- right arm + hand (behind) ---
-    fill_poly([(bx + bw + 1, by + 20.6), (bx + 133.6, by + 22.9),
-               (bx + 133.6, by + 31.1), (bx + bw + 1, by + 33.6)], CHAR)
-    fill_poly([(bx + bw + 1, by + 20.6), (bx + 133.6, by + 22.9),
-               (bx + 133.6, by + 24.9), (bx + bw + 1, by + 22.8)],
+    fill_poly([(bx + bw + 1, by + 22.1), (bx + 139.6, by + 25.4),
+               (bx + 139.6, by + 37.0), (bx + bw + 1, by + 40.6)], CHAR)
+    fill_poly([(bx + bw + 1, by + 22.1), (bx + 139.6, by + 25.4),
+               (bx + 139.6, by + 28.2), (bx + bw + 1, by + 25.2)],
               CHAR_L)
-    fill_poly([(bx + 133.6, by + 28.9), (bx + bw + 1, by + 31.2),
-               (bx + bw + 1, by + 33.6), (bx + 133.6, by + 31.1)],
+    fill_poly([(bx + 139.6, by + 33.9), (bx + bw + 1, by + 37.2),
+               (bx + bw + 1, by + 40.6), (bx + 139.6, by + 37.0)],
               CHAR_D)
-    fill_poly([(bx + 129.5, by + 24.4), (bx + 103, by + 23.8),
-               (bx + 102, by + 30.2), (bx + 129.5, by + 30.3)], SKB)
-    grad_ellipse(cx + 4.0, cy + 0.5, 14.5, 6.4,
+    fill_poly([(bx + 134.9, by + 27.5), (bx + 104.4, by + 26.7),
+               (bx + 103.2, by + 35.8), (bx + 134.9, by + 35.9)], SKB)
+    grad_ellipse(cx + 4.6, cy + 0.7, 16.7, 9.1,
                  (233, 180, 130), SKB_D)
-    for fx in (86.5, 91.8, 97.2):
-        fill_circle(bx + fx, by + 33.0, 2.8, SKB)
-    thick_line(bx + 106.1, by + 21.6, bx + 95.0, by + 24.9, 3.1, SKB)
-    fill_poly([(bx + 128.1, by + 23.2), (bx + 135.1, by + 22.8),
-               (bx + 135.1, by + 30.9), (bx + 128.1, by + 31.2)], CUFF)
-    fill_poly([(bx + 128.1, by + 29.7), (bx + 135.1, by + 29.4),
-               (bx + 135.1, by + 30.9), (bx + 128.1, by + 31.2)],
+    for fx in (85.4, 91.5, 97.7):
+        fill_circle(bx + fx, by + 39.7, 3.9, SKB)
+    thick_line(bx + 108.0, by + 23.5, bx + 95.2, by + 28.2, 4.2, SKB)
+    fill_poly([(bx + 133.3, by + 25.8), (bx + 141.3, by + 25.2),
+               (bx + 141.3, by + 36.8), (bx + 133.3, by + 37.2)], CUFF)
+    fill_poly([(bx + 133.3, by + 35.0), (bx + 141.3, by + 34.6),
+               (bx + 141.3, by + 36.8), (bx + 133.3, by + 37.2)],
               CUFF_D)
     # --- left arm + hand (front) ---
-    fill_poly([(bx - 1, by + 20.6), (bx + 54, by + 22.9),
-               (bx + 54, by + 31.1), (bx - 1, by + 33.6)], NAVY)
-    fill_poly([(bx - 1, by + 20.6), (bx + 54, by + 22.9),
-               (bx + 54, by + 24.9), (bx - 1, by + 22.8)], NAVY_L)
-    fill_poly([(bx + 54, by + 28.9), (bx - 1, by + 31.2),
-               (bx - 1, by + 33.6), (bx + 54, by + 31.1)], NAVY_D)
-    fill_poly([(bx + 58.5, by + 24.4), (bx + 84, by + 23.8),
-               (bx + 85, by + 30.2), (bx + 58.5, by + 30.3)], SKA)
-    grad_ellipse(cx - 4.0, cy + 0.5, 14.5, 6.4,
+    fill_poly([(bx - 1, by + 22.1), (bx + 48.0, by + 25.4),
+               (bx + 48.0, by + 37.0), (bx - 1, by + 40.6)], NAVY)
+    fill_poly([(bx - 1, by + 22.1), (bx + 48.0, by + 25.4),
+               (bx + 48.0, by + 28.2), (bx - 1, by + 25.2)], NAVY_L)
+    fill_poly([(bx + 48.0, by + 33.9), (bx - 1, by + 37.2),
+               (bx - 1, by + 40.6), (bx + 48.0, by + 37.0)], NAVY_D)
+    fill_poly([(bx + 53.2, by + 27.5), (bx + 82.5, by + 26.7),
+               (bx + 83.7, by + 35.8), (bx + 53.2, by + 35.9)], SKA)
+    grad_ellipse(cx - 4.6, cy + 0.7, 16.7, 9.1,
                  (240, 192, 148), SKA_D)
-    for fx in (99.0, 104.5, 109.8):
-        fill_circle(bx + fx, by + 32.7, 2.8, SKA)
-    thick_line(bx + 81.5, by + 21.6, bx + 92.6, by + 24.9, 3.1, SKA)
-    fill_poly([(bx + 52.5, by + 22.8), (bx + 59.5, by + 23.2),
-               (bx + 59.5, by + 31.2), (bx + 52.5, by + 30.9)], CUFF)
-    fill_poly([(bx + 52.5, by + 29.6), (bx + 59.5, by + 29.9),
-               (bx + 59.5, by + 31.2), (bx + 52.5, by + 30.9)],
+    for fx in (99.8, 106.1, 112.2):
+        fill_circle(bx + fx, by + 39.3, 3.9, SKA)
+    thick_line(bx + 79.6, by + 23.5, bx + 92.4, by + 28.2, 4.2, SKA)
+    fill_poly([(bx + 46.3, by + 25.2), (bx + 54.4, by + 25.8),
+               (bx + 54.4, by + 37.2), (bx + 46.3, by + 36.8)], CUFF)
+    fill_poly([(bx + 46.3, by + 34.9), (bx + 54.4, by + 35.3),
+               (bx + 54.4, by + 37.2), (bx + 46.3, by + 36.8)],
               CUFF_D)
     # finger separation hints along the clasp's lower edge
-    polyline([(bx + 94.5, by + 32.2), (bx + 94.7, by + 35.0)],
-             0.55, SKB_D)
-    polyline([(bx + 102.0, by + 32.2), (bx + 102.2, by + 35.0)],
-             0.55, SKA_D)
+    polyline([(bx + 94.6, by + 38.6), (bx + 94.8, by + 42.6)],
+             0.75, SKB_D)
+    polyline([(bx + 103.2, by + 38.6), (bx + 103.5, by + 42.6)],
+             0.75, SKA_D)
     # --- the X: exact 45 degrees, centred on the clasp point ---
-    d = 7.6
-    thick_line(cx - d, cy - d, cx + d, cy + d, 3.4, RED)
-    thick_line(cx + d, cy - d, cx - d, cy + d, 3.4, RED)
+    d = 10.5
+    thick_line(cx - d, cy - d, cx + d, cy + d, 4.4, RED)
+    thick_line(cx + d, cy - d, cx - d, cy + d, 4.4, RED)
 
 
 def s_ukeu(bx, by, bw, bh):
     # One bold subject: the two flags, as large as the strip allows,
-    # side by side.
+    # side by side. Round 14: flags 80x24 (was 70x17.5), filling
+    # the taller strip by+19..by+43.
     vgrad(bx, by, bw, bh, (244, 238, 222), (236, 228, 206))
-    vgrad(bx + 8, by + 17.5, 70, 17.5, (62, 100, 152), (36, 68, 116))
-    polyline([(bx + 9.3, by + 18.8), (bx + 76.7, by + 33.7)], 2.8, WHITE)
-    polyline([(bx + 9.3, by + 33.7), (bx + 76.7, by + 18.8)], 2.8, WHITE)
-    fill_rect(bx + 38, by + 17.5, 10, 17.5, RED)
-    fill_rect(bx + 8, by + 23.2, 70, 6, RED)
-    vgrad(bx + 110, by + 17.5, 70, 17.5, (62, 100, 152), (36, 68, 116))
+    vgrad(bx + 10, by + 19, 80, 24, (62, 100, 152), (36, 68, 116))
+    polyline([(bx + 11.5, by + 20.7), (bx + 88.5, by + 41.3)], 3.4,
+             WHITE)
+    polyline([(bx + 11.5, by + 41.3), (bx + 88.5, by + 20.7)], 3.4,
+             WHITE)
+    fill_rect(bx + 43.5, by + 19, 13, 24, RED)
+    fill_rect(bx + 10, by + 27, 80, 8, RED)
+    vgrad(bx + 98, by + 19, 80, 24, (62, 100, 152), (36, 68, 116))
     for si, a in enumerate(range(0, 360, 30)):
         ar = math.radians(a)
-        fill_circle(bx + 145 + 6.6 * math.cos(ar),
-                    by + 26.25 + 6.6 * math.sin(ar), 2.0,
+        fill_circle(bx + 138 + 8.4 * math.cos(ar),
+                    by + 31 + 8.4 * math.sin(ar), 2.5,
                     GOLD if si % 2 == 0 else (216, 170, 60))
 
 
@@ -1531,17 +1540,20 @@ def s_icj(bx, by, bw, bh):
     # ink tone so it reads instantly against the pale ground.
     vgrad(bx, by, bw, bh, (239, 234, 220), (224, 217, 198))
     ink = (74, 66, 56)
-    fill_poly([(bx + 28, by + 22.5), (bx + 94, by + 17.3),
-               (bx + 160, by + 22.5)], ink)
+    # Round 14: the courthouse spans wider (x 14..174) and taller
+    # (apex by+19.5, base foot by+43.7) in the 27px strip.
+    fill_poly([(bx + 14, by + 26.5), (bx + 94, by + 19.5),
+               (bx + 174, by + 26.5)], ink)
     # a lit ridge line along the pediment's slopes and a pale
     # capital strip on each column - stone shading, drawn once
-    polyline([(bx + 29.5, by + 22.1), (bx + 94, by + 17.8),
-              (bx + 158.5, by + 22.1)], 0.9, (128, 118, 102))
-    fill_rect(bx + 24, by + 22.5, 140, 3.2, ink)
+    polyline([(bx + 15.5, by + 26.0), (bx + 94, by + 20.1),
+              (bx + 172.5, by + 26.0)], 1.1, (128, 118, 102))
+    fill_rect(bx + 10, by + 26.5, 168, 3.6, ink)
     for i in range(4):
-        fill_rect(bx + 34 + i * 32, by + 25.7, 11, 8.0, ink)
-        fill_rect(bx + 34 + i * 32, by + 25.7, 11, 1.6, (128, 118, 102))
-    fill_rect(bx + 24, by + 33.4, 140, 2.4, ink)
+        fill_rect(bx + 24 + i * 42, by + 30.1, 14, 10.8, ink)
+        fill_rect(bx + 24 + i * 42, by + 30.1, 14, 2.0,
+                  (128, 118, 102))
+    fill_rect(bx + 10, by + 40.9, 168, 2.8, ink)
 
 
 def s_japan(bx, by, bw, bh):
@@ -1552,38 +1564,40 @@ def s_japan(bx, by, bw, bh):
     # small dips but a clear net climb, ending in a big up-right
     # head. Same arrow language as the Bitcoin and sell-off charts.
     vgrad(bx, by, bw, bh, (244, 238, 222), (236, 228, 206))
-    vgrad(bx + 8, by + 18, 64, 17, (255, 255, 255), (238, 236, 230))
-    outline_rect(bx + 8, by + 18, 64, 17, 1.0, (150, 145, 135))
-    grad_circle(bx + 40, by + 26.5, 6.3, (198, 54, 46), (162, 30, 26))
-    _grid(bx, by, 82, bw - 3, 19.5, 34.5, 13.7, 7.5, (208, 201, 184))
-    zig_arrow([(bx + 88, by + 33.6), (bx + 112, by + 28.6),
-               (bx + 124, by + 31.1), (bx + 146, by + 25.1),
-               (bx + 156, by + 27.6), (bx + 171, by + 22.1)],
-              4.2, RED, 10.5, 5.8)
+    vgrad(bx + 6, by + 19, 78, 24, (255, 255, 255), (238, 236, 230))
+    outline_rect(bx + 6, by + 19, 78, 24, 1.0, (150, 145, 135))
+    grad_circle(bx + 45, by + 31, 9.0, (198, 54, 46), (162, 30, 26))
+    _grid(bx, by, 92, bw - 3, 20, 41, 13.7, 10.5, (208, 201, 184))
+    zig_arrow([(bx + 94, by + 41.0), (bx + 118, by + 34.0),
+               (bx + 130, by + 37.5), (bx + 152, by + 30.0),
+               (bx + 163, by + 33.5), (bx + 172, by + 26.0)],
+              5.0, RED, 12, 6.5)
 
 
 def s_italy(bx, by, bw, bh):
     # One bold subject: a strike crowd - big heads and bodies, two
     # demonstrators holding placards high.
     vgrad(bx, by, bw, bh, (208, 226, 237), (186, 206, 224))
-    vgrad(bx, by + bh - 5, bw, 5, (160, 150, 128), (136, 126, 104))
+    vgrad(bx, by + bh - 6, bw, 6, (160, 150, 128), (136, 126, 104))
+    # Round 14: bigger crowd - front heads r 7.2 (was 5.2), taller
+    # placards (40x12.5), back rank scaled up to match.
     # a second, smaller rank of heads behind the front four -
     # crowd depth, drawn before the front rank so it sits behind
     for cx0 in (49, 92, 137):
         cx = bx + cx0
-        fill_circle(cx, by + 27.5, 3.6, (62, 60, 54))
-        thick_line(cx, by + 30, cx, by + 34, 3.0, (62, 60, 54))
+        fill_circle(cx, by + 29, 4.8, (62, 60, 54))
+        thick_line(cx, by + 32.5, cx, by + 38, 4.2, (62, 60, 54))
     for i, cx0 in enumerate([28, 70, 114, 160]):
         cx = bx + cx0
         if i in (0, 2):
             pc = RED if i == 0 else TEAL
-            thick_line(cx + 4, by + 28, cx + 11, by + 19, 2.2, INK)
-            fill_rect(cx - 6, by + 17.8, 32, 11, pc)
-            fill_rect(cx - 6, by + 22.3, 32, 2.2, WHITE)
+            thick_line(cx + 5, by + 34, cx + 13, by + 29, 2.6, INK)
+            fill_rect(cx - 16, by + 17.5, 40, 12.5, pc)
+            fill_rect(cx - 16, by + 22.7, 40, 2.6, WHITE)
         else:
-            thick_line(cx + 3, by + 28, cx + 10, by + 22, 2.2, INK)
-        fill_circle(cx, by + 24.5, 5.2, INK)
-        thick_line(cx, by + 28, cx, by + 33, 4.2, INK)
+            thick_line(cx + 4, by + 35, cx + 11, by + 28, 2.6, INK)
+        fill_circle(cx, by + 32.5, 7.2, INK)
+        thick_line(cx, by + 37.5, cx, by + 43.5, 6.2, INK)
 
 
 def s_gold(bx, by, bw, bh):
@@ -1593,92 +1607,114 @@ def s_gold(bx, by, bw, bh):
 
     def bar(x, ybase):
         # ingot: gradient front face, a shaded right edge and a
-        # bright top face - each drawn once
-        vgrad(x, ybase - 6, 44, 6, (208, 160, 54), (158, 116, 32))
-        fill_rect(x + 39, ybase - 6, 5, 6, (138, 100, 26))
-        fill_rect(x, ybase - 6, 44, 1.2, (238, 204, 102))
-    for x in (22, 68, 114):
-        bar(bx + x, by + 35.5)
-    for x in (45, 91):
-        bar(bx + x, by + 29.5)
-    bar(bx + 68, by + 23.5)
+        # bright top face - each drawn once. Round 14: bars are
+        # 56x9 (was 44x6), pyramid steps 9px in the taller strip.
+        vgrad(x, ybase - 9, 56, 9, (208, 160, 54), (158, 116, 32))
+        fill_rect(x + 49.5, ybase - 9, 6.5, 9, (138, 100, 26))
+        fill_rect(x, ybase - 9, 56, 1.6, (238, 204, 102))
+    for x in (8, 66, 124):
+        bar(bx + x, by + 44)
+    for x in (37, 95):
+        bar(bx + x, by + 35)
+    bar(bx + 66, by + 26)
 
 
 def s_mercury(bx, by, bw, bh):
     # One bold subject: the planet disc and the probe beside it,
     # both drawn large - disc at left, probe with two solar wings.
+    # Round 14: Mercury's band is 42 (strip by+17..by+42, centre
+    # by+29.5) - the panel's 3-line headline leaves less slack
+    # than its row-mates, so its band grows less (see small_panel
+    # call). Planet r 12 and a 32-wide probe fill the strip.
     vgrad(bx, by, bw, bh, (30, 40, 68), (15, 21, 38))
-    _stars(bx, by, bw, bh, 8, (190, 200, 220))
-    grad_circle(bx + 40, by + 26.5, 9.4, (198, 178, 150),
+    _stars(bx, by, bw, bh, 10, (190, 200, 220))
+    grad_circle(bx + 42, by + 29.5, 12, (198, 178, 150),
                 (134, 114, 90))
-    for (ox, oy, r) in [(-3, -2, 2.4), (3.5, 3, 3.0), (0.5, -5, 1.8)]:
-        fill_circle(bx + 40 + ox, by + 26.5 + oy, r, (124, 106, 82))
-    vgrad(bx + 92, by + 20, 24, 13, (112, 158, 216), (66, 106, 164))
-    vgrad(bx + 140, by + 20, 24, 13, (112, 158, 216), (66, 106, 164))
-    for px0 in (92, 140):
-        thick_line(bx + px0 + 8, by + 20, bx + px0 + 8, by + 33, 0.8,
-                   (52, 84, 130))
-        thick_line(bx + px0 + 16, by + 20, bx + px0 + 16, by + 33, 0.8,
-                   (52, 84, 130))
-    vgrad(bx + 118, by + 22, 20, 9, (252, 252, 250), (204, 204, 198))
-    thick_line(bx + 116, by + 26.5, bx + 118, by + 26.5, 2.4, WHITE)
-    thick_line(bx + 138, by + 26.5, bx + 140, by + 26.5, 2.4, WHITE)
-    thick_line(bx + 128, by + 22, bx + 128, by + 19.9, 1.6, WHITE)
-    fill_circle(bx + 128, by + 19.2, 1.7, GOLD)
+    for (ox, oy, r) in [(-4, -3, 3.2), (5, 4, 4.0), (1, -6.5, 2.4)]:
+        fill_circle(bx + 42 + ox, by + 29.5 + oy, r, (124, 106, 82))
+    vgrad(bx + 88, by + 22, 32, 15, (112, 158, 216), (66, 106, 164))
+    vgrad(bx + 148, by + 22, 32, 15, (112, 158, 216), (66, 106, 164))
+    for px0 in (88, 148):
+        thick_line(bx + px0 + 10.7, by + 22, bx + px0 + 10.7,
+                   by + 37, 0.9, (52, 84, 130))
+        thick_line(bx + px0 + 21.3, by + 22, bx + px0 + 21.3,
+                   by + 37, 0.9, (52, 84, 130))
+    vgrad(bx + 122, by + 24.5, 24, 11, (252, 252, 250),
+          (204, 204, 198))
+    thick_line(bx + 120, by + 29.5, bx + 122, by + 29.5, 3.0, WHITE)
+    thick_line(bx + 146, by + 29.5, bx + 148, by + 29.5, 3.0, WHITE)
+    thick_line(bx + 134, by + 24.5, bx + 134, by + 21.8, 1.8, WHITE)
+    fill_circle(bx + 134, by + 20.6, 2.3, GOLD)
 
 
 def s_sudan(bx, by, bw, bh):
     # One bold subject: a quadcopter drone silhouette, drawn large -
     # body, four long arms, four wide rotor discs.
     vgrad(bx, by, bw, bh, (228, 208, 162), (204, 180, 130))
-    cx, cy = bx + bw / 2.0, by + 27
+    cx, cy = bx + bw / 2.0, by + 30.5
     dark = (70, 62, 54)
-    thick_line(cx - 8, cy - 2, cx - 28, cy - 5.5, 3.0, INK)
-    thick_line(cx + 8, cy - 2, cx + 28, cy - 5.5, 3.0, INK)
-    thick_line(cx - 8, cy + 2.5, cx - 28, cy + 5.5, 3.0, INK)
-    thick_line(cx + 8, cy + 2.5, cx + 28, cy + 5.5, 3.0, INK)
-    for (ox, oy) in [(-31, -6), (31, -6), (-31, 6), (31, 6)]:
-        grad_ellipse(cx + ox, cy + oy, 10.5, 2.6, (104, 96, 86),
+    # Round 14: arms reach +-37 (was +-28), rotor discs rx 14
+    # (was 10.5), body 28x10.5 (was 22x8).
+    thick_line(cx - 10, cy - 2.5, cx - 37, cy - 7, 3.6, INK)
+    thick_line(cx + 10, cy - 2.5, cx + 37, cy - 7, 3.6, INK)
+    thick_line(cx - 10, cy + 2.5, cx - 37, cy + 7, 3.6, INK)
+    thick_line(cx + 10, cy + 2.5, cx + 37, cy + 7, 3.6, INK)
+    for (ox, oy) in [(-40, -7.5), (40, -7.5), (-40, 7.5), (40, 7.5)]:
+        grad_ellipse(cx + ox, cy + oy, 14, 3.4, (104, 96, 86),
                      (56, 50, 44))
-    fill_rect(cx - 11, cy - 4, 22, 8, INK)
-    fill_rect(cx - 11, cy - 4, 22, 2.4, (92, 88, 82))
-    fill_circle(cx, cy + 5.8, 2.2, dark)
+    fill_rect(cx - 14, cy - 5.25, 28, 10.5, INK)
+    fill_rect(cx - 14, cy - 5.25, 28, 3.0, (92, 88, 82))
+    fill_circle(cx, cy + 7.8, 2.8, dark)
 
 
 def s_cricket(bx, by, bw, bh):
     # One bold subject: a big diagonal bat, a red ball and the
     # stumps, filling the strip.
     vgrad(bx, by, bw, bh, (104, 148, 86), (74, 118, 58))
-    vgrad(bx + 24, by + 30, 140, 5.5, (228, 206, 160), (204, 180, 130))
-    thick_line(bx + 46, by + 21.5, bx + 86, by + 30, 10, (219, 193, 142))
-    thick_line(bx + 46, by + 21.5, bx + 86, by + 30, 4.5,
+    vgrad(bx + 16, by + 36.5, 156, 6.5, (228, 206, 160),
+          (204, 180, 130))
+    # Round 14: bat stroke 13 (was 10), ball r 8.5 (was 6.5),
+    # stumps 17 tall (was 13).
+    thick_line(bx + 40, by + 22, bx + 92, by + 33, 13, (219, 193, 142))
+    thick_line(bx + 40, by + 22, bx + 92, by + 33, 6,
                (238, 216, 172))
-    thick_line(bx + 38, by + 20.6, bx + 46, by + 21.5, 3.4, (96, 64, 38))
-    grad_circle(bx + 118, by + 25, 6.5, (210, 66, 56), (154, 32, 28))
-    polyline(arc_pts(bx + 118, by + 25, 4.2, 5.4, 300, 60), 1.0, WHITE)
+    thick_line(bx + 30, by + 20.8, bx + 40, by + 22, 4.4, (96, 64, 38))
+    grad_circle(bx + 124, by + 29, 8.5, (210, 66, 56), (154, 32, 28))
+    polyline(arc_pts(bx + 124, by + 29, 5.5, 7.0, 300, 60), 1.2, WHITE)
     for i in range(3):
-        fill_rect(bx + 152 + i * 6, by + 20, 2.6, 13, (240, 230, 200))
-    fill_rect(bx + 152, by + 19, 15, 2, (240, 230, 200))
+        fill_rect(bx + 156 + i * 7.5, by + 22, 3.2, 17,
+                  (240, 230, 200))
+    fill_rect(bx + 156, by + 20.4, 18.2, 2.4, (240, 230, 200))
 
 
 def small_panel(x, y, w, h, scene, label, band_col, region, headline,
-                body, hsize=22, hpitch=25, hstart=70, bsize=13.5,
-                bpitch=15.5, bstart=113.5, hfont='SERIF'):
+                body, hsize=22, hpitch=22, hstart=74, bsize=13.5,
+                bpitch=15, bstart=114.5, hfont='SERIF', bandh=44,
+                ky=56):
     fill_rect(x, y, w, h, PANEL)
     outline_rect(x, y, w, h, 1.1, RULE)
-    bx, by, bw, bh = x + 1, y + 1, w - 2, 36
+    bx, by, bw, bh = x + 1, y + 1, w - 2, bandh
     scene(bx, by, bw, bh)
     label_band(bx, by, bw, 17, label, "", band_col, 15.5)
-    draw_region(x + 7, y + 50, region, w - 14, size=10.5, floor=10.5)
+    draw_region(x + 7, y + ky, region, w - 14, size=10.5, floor=10.5)
     # Shared panel rhythm (identical in every small panel): kicker
-    # baseline y+50 at one uniform size (10.5 - the size at which
+    # baseline y+56 at one uniform size (10.5 - the size at which
     # the longest kicker string fits the measure, so no panel's
     # kicker is fitted differently from another's), headline
-    # baselines y+70 / y+95 (pitch 25, 1.6x cap height), body
-    # always starts at y+113.5 - driven by these constants, never
-    # by how the headline happened to wrap. Panels whose copy runs
-    # longer pass fitted h*/b* values so the text block is re-set
-    # to fill its panel evenly instead of overflowing it.
+    # baselines y+74 / y+96 (pitch 22), body always starts at
+    # y+114.5 - driven by these constants, never by how the
+    # headline happened to wrap. Panels whose copy runs longer
+    # pass fitted h*/b* values so the text block is re-set to
+    # fill its panel evenly instead of overflowing it.
+    # Round 14: the art band grew 36 -> 44 (visible strip 19 ->
+    # 27, +42%) and the text stack was re-balanced to pay for it -
+    # band->kicker gap 13 -> 12, headline pitch 25 -> 22, body
+    # start/pitch re-derived per panel type - so every panel's
+    # last body baseline stays within 0.5px of its v13 position
+    # and no ink gap falls below v13's. Mercury (3-line headline
+    # + 2-line body, the tightest panel) grows its band less
+    # (42, strip 25) and re-spaces its lines instead; it passes
+    # bandh/ky/h* overrides.
     draw_wrapped(x + 7, y + hstart, headline, hsize, INK, hfont,
                  w - 14, hpitch)
     draw_wrapped(x + 7, y + bstart, body, bsize, INK, 'SANS', w - 14,
@@ -1697,19 +1733,21 @@ def _px(i):
 def btc_panel(x, y, w, h):
     fill_rect(x, y, w, h, PANEL)
     outline_rect(x, y, w, h, 1.1, RULE)
-    bx, by, bw, bh = x + 1, y + 1, w - 2, 36
+    bx, by, bw, bh = x + 1, y + 1, w - 2, 44
     s_btc(bx, by, bw, bh)
     label_band(bx, by, bw, 17, "BITCOIN < $60K", "", RED, 15.5)
-    draw_region(x + 7, y + 50, "4 · WORLD · CRYPTO · REUTERS · C", w - 14,
+    draw_region(x + 7, y + 56, "4 · WORLD · CRYPTO · REUTERS · C", w - 14,
                 size=10.5, floor=10.5)
-    draw_wrapped(x + 7, y + 70, "Bitcoin breaks below $60,000", 22, INK,
-                 'SERIF_L', w - 14, 25)
+    draw_wrapped(x + 7, y + 74, "Bitcoin breaks below $60,000", 22, INK,
+                 'SERIF_L', w - 14, 22)
     # Body re-set as one wrapped block at the grid's body size:
-    # three even lines (baselines 111 / 125 / 139, pitch 14) fill
-    # the panel under the two headline lines.
-    draw_wrapped(x + 7, y + 111, "Record one-day outflow of $541.1M "
+    # three even lines (baselines 112 / 125.5 / 139, pitch 13.5)
+    # fill the panel under the two headline lines - the same last
+    # baseline as v13, the round-14 band growth paid for by the
+    # tighter headline pitch and the re-derived start.
+    draw_wrapped(x + 7, y + 112, "Record one-day outflow of $541.1M "
                  "(BlackRock-led). Price at $58,678.", 13.5, INK,
-                 'SANS', w - 14, 14)
+                 'SANS', w - 14, 13.5)
 
 
 btc_panel(_px(0), PY1, PW, PH)
@@ -1718,19 +1756,19 @@ small_panel(_px(1), PY1, PW, PH, s_cop, "COP31: NO DEAL", NAVY,
             "COP31 ends with no deal",
             "Draft axed fossil fuels and the $120bn target. Final "
             "text expected Saturday.",
-            bsize=12.5, bpitch=14, bstart=111, hfont='SERIF_L')
+            bsize=12.5, bpitch=13.5, bstart=112, hfont='SERIF_L')
 small_panel(_px(2), PY1, PW, PH, s_ukeu, "UK-EU DEAL", BLUE,
             "6 · EUROPE · RESET · REUTERS · C",
             "UK-EU 'reset' deal sealed",
             "100,000 youth visas/year, food trade eased, carbon "
             "markets linked.",
-            bsize=12.5, bpitch=14, bstart=111)
+            bsize=12.5, bpitch=13.5, bstart=112)
 small_panel(_px(3), PY1, PW, PH, s_icj, "WORLD COURT", INK,
             "7 · ASIA · JUSTICE · REUTERS · C",
             "Myanmar rejects genocide ruling",
             "First ever: a state found responsible for genocide by "
             "ICJ. Myanmar calls it unfair.",
-            bsize=12.5, bpitch=14, bstart=111)
+            bsize=12.5, bpitch=13.5, bstart=112)
 small_panel(_px(4), PY1, PW, PH, s_japan, "JAPAN: +2.3%", RED,
             "8 · ASIA · ECONOMY · OFFICIAL · C",
             "Japan inflation rises to 2.3%",
@@ -1752,8 +1790,8 @@ small_panel(_px(2), PY2, PW, PH2, s_mercury, "MERCURY", NAVY,
             "11 · WORLD · SPACE · ESA · C",
             "BepiColombo reaches Mercury — orbit burn Saturday",
             "8 years out; only the 2nd craft to orbit the planet.",
-            hsize=18, hpitch=20, hstart=65, bsize=12.5, bpitch=13,
-            bstart=118.5)
+            hsize=18, hpitch=18.5, hstart=69.5, bsize=12.5, bpitch=12,
+            bstart=119.5, bandh=42, ky=54.5)
 small_panel(_px(3), PY2, PW, PH2, s_sudan, "SUDAN: DRONE", BROWN,
             "12 · AFRICA · WAR · DABANGA · R",
             "Sudan: drone kills 10",
