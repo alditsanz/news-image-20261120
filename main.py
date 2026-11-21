@@ -1925,7 +1925,11 @@ draw_text(352, 784, "ALSO ON FRIDAY 20 NOVEMBER — 18 MORE STORIES", 19,
 fill_rect(M, 790, CW, 1.0, RULE)
 
 MAPX, MAPY, MAPW, MAPH = M, 794, 308, 124
-fill_rect(MAPX, MAPY, MAPW, MAPH, (238, 232, 214))
+# Round 17 (Fatur, 2026-11-22 ~03:48 WIB): the map takes Earth's
+# own colours seen from space - blue sea, light natural green
+# land - replacing the cream sea and slate land of rounds 8-16.
+SEA = (74, 134, 194)        # ocean blue
+fill_rect(MAPX, MAPY, MAPW, MAPH, SEA)
 outline_rect(MAPX, MAPY, MAPW, MAPH, 1.0, RULE)
 # Land mask rasterized offline from the johan/world.geo.json
 # countries dataset (Natural Earth coastlines): 180x72 cells
@@ -2009,7 +2013,7 @@ LANDROWS = [
     "....................................................................................................................................................................................",
     "....................................................................................................................................................................................",
 ]
-LAND = (95, 115, 140)       # slate land silhouette
+LAND = (158, 210, 138)      # light natural green (round 17)
 _cw = MAPW / 180.0
 _chh = MAPH / 72.0
 for _r, _row in enumerate(LANDROWS):
@@ -2039,6 +2043,10 @@ def _pin(n, lon, lat, dx=0.0, dy=0.0, col=RED, num=WHITE):
         thick_line(px, py, px + dx, py + dy, 0.8, DARK)
         fill_circle(px, py, 1.5, DARK)
         px, py = px + dx, py + dy
+    # Round 17: a white halo ring under each disc, so the region
+    # colours (and the numerals on them) stay clearly readable
+    # against the new light-green land and blue sea.
+    fill_circle(px, py, 5.7, WHITE)
     fill_circle(px, py, 4.6, col)
     draw_text(px, py + 2.7, str(n), 8 if n < 10 else 7, num, 'SANS_B',
               align='c')
@@ -2064,10 +2072,15 @@ _pin(13, 174.8, -41.3, -11, 0, col=GREEN)  # Wellington, NZ; disc led W
 # 11 is off the map: a star at the top-right corner of the map
 # box, in WORLD ink like the other world pins.
 _sx, _sy = MAPX + MAPW - 12, MAPY + 10
-fill_poly([(_sx, _sy - 6), (_sx + 1.8, _sy - 1.8), (_sx + 6, _sy - 1.6),
-           (_sx + 2.6, _sy + 1.2), (_sx + 3.8, _sy + 5.6), (_sx, _sy + 2.6),
-           (_sx - 3.8, _sy + 5.6), (_sx - 2.6, _sy + 1.2),
-           (_sx - 6, _sy - 1.6), (_sx - 1.8, _sy - 1.8)], INK)
+_star = [(_sx, _sy - 6), (_sx + 1.8, _sy - 1.8), (_sx + 6, _sy - 1.6),
+         (_sx + 2.6, _sy + 1.2), (_sx + 3.8, _sy + 5.6), (_sx, _sy + 2.6),
+         (_sx - 3.8, _sy + 5.6), (_sx - 2.6, _sy + 1.2),
+         (_sx - 6, _sy - 1.6), (_sx - 1.8, _sy - 1.8)]
+# Round 17: same white halo treatment as the pins, so the ink
+# star stays crisp on the blue sea / green land behind it.
+fill_poly([(_sx + (x - _sx) * 1.45, _sy + (y - _sy) * 1.45)
+           for x, y in _star], WHITE)
+fill_poly(_star, INK)
 draw_text(_sx - 8, _sy + 13.5, "11", 8.5, INK, 'SANS_B', align='c')
 draw_text(MAPX + 2, MAPY + MAPH + 10,
           "Pins 1-13 as numbered; 11 = Mercury, off map.", 11.5, DARK,
