@@ -1091,6 +1091,36 @@ def _stars(bx, by, bw, bh, n, col):
         fill_circle(sx, sy, 0.9, col)
 
 
+def _grid(bx, by, x0, x1, y0, y1, dx, dy, c):
+    """A faint chart grid inside a scene box: hairlines from
+    (x0, y0) to (x1, y1), spaced dx / dy, in a low-contrast tone."""
+    yy = y0
+    while yy <= y1 + 0.01:
+        fill_rect(bx + x0, by + yy, x1 - x0, 0.7, c)
+        yy += dy
+    xx = x0
+    while xx <= x1 + 0.01:
+        fill_rect(bx + xx, by + y0, 0.7, y1 - y0, c)
+        xx += dx
+
+
+def zig_arrow(pts, w, c, hl, hw):
+    """A thick zigzag polyline ending in a big filled arrowhead
+    aligned with its last segment - the direction reads instantly.
+    hl = head length along the shaft, hw = head half-width."""
+    polyline(pts, w, c)
+    (ax, ay), (ex, ey) = pts[-2], pts[-1]
+    dx, dy = ex - ax, ey - ay
+    ln = math.hypot(dx, dy)
+    ux, uy = dx / ln, dy / ln
+    nx, ny = -uy, ux
+    back = hl * 0.30
+    tip = (ex + ux * hl, ey + uy * hl)
+    c1 = (ex - ux * back + nx * hw, ey - uy * back + ny * hw)
+    c2 = (ex - ux * back - nx * hw, ey - uy * back - ny * hw)
+    fill_poly([tip, c1, c2], c)
+
+
 def scene_kyiv(bx, by, bw, bh):
     fill_rect(bx, by, bw, bh, NAVY)
     _stars(bx, by, bw, bh, 34, (198, 208, 228))
@@ -1155,17 +1185,17 @@ def scene_akvan(bx, by, bw, bh):
 
 
 def scene_markets(bx, by, bw, bh):
+    # One bold subject: a thick red zigzag arrow plunging across
+    # the whole scene over a faint grid - the sell-off reads in a
+    # single glance. The old bar silhouettes are gone so nothing
+    # fights the arrow; the yen coin stays at top right, clear of
+    # the arrow's path and of its head.
     fill_rect(bx, by, bw, bh, (30, 34, 46))
-    for i in range(4):
-        fill_rect(bx + 6, by + 26 + i * 13, bw - 12, 0.8, (62, 68, 84))
-    for i, hh in enumerate([16, 24, 13, 30, 20, 26, 15, 22]):
-        fill_rect(bx + 12 + i * 38, by + bh - hh, 26, hh, (18, 21, 30))
-    pts = [(bx + 14, by + 30), (bx + 62, by + 34), (bx + 104, by + 44),
-           (bx + 148, by + 42), (bx + 196, by + 56), (bx + 240, by + 62),
-           (bx + 282, by + 74)]
-    polyline(pts, 2.8, RED)
-    ex, ey = pts[-1]
-    fill_poly([(ex, ey), (ex - 11, ey - 3), (ex - 4, ey + 9)], RED)
+    _grid(bx, by, 4, bw - 4, 27, 74, 31, 11.75, (56, 62, 78))
+    zig_arrow([(bx + 12, by + 31), (bx + 64, by + 38),
+               (bx + 90, by + 32.5), (bx + 142, by + 46),
+               (bx + 168, by + 40), (bx + 222, by + 55),
+               (bx + 246, by + 64)], 5.0, RED, 15, 8)
     # yen coin
     cx, cy = bx + bw - 40, by + 34
     fill_circle(cx, cy, 12, GOLD)
@@ -1266,20 +1296,21 @@ hero(M + 2 * HW + 20, HY, HW, 214, scene_markets, "AI SELL-OFF",
 
 # ------------------------------------------------------------ panel scenes
 def s_btc(bx, by, bw, bh):
-    # One bold subject: a big coin at left and a big, steeply falling
-    # chart line with a fat arrowhead - the drop under $60k runs the
-    # width of the strip and nearly its whole height, unmistakable.
+    # One bold subject: a thick red zigzag arrow plunging down the
+    # strip over a faint grid - the fall under $60k is the picture.
+    # The big coin stays at left; the arrow starts clear of it and
+    # owns the rest of the band, ending in a big down-right head.
     fill_rect(bx, by, bw, bh, (26, 25, 30))
+    _grid(bx, by, 42, bw - 3, 19.5, 34.5, 13.7, 7.5, (56, 53, 62))
     cx, cy = bx + 27, by + 26.5
     fill_circle(cx, cy, 9.2, GOLD)
     fill_circle(cx, cy, 7.1, (200, 154, 46))
     draw_text(cx, cy + 5.0, "B", 14, (84, 60, 8), 'SANS_B', align='c')
     thick_line(cx - 2.8, cy - 8.2, cx - 2.8, cy + 8.2, 1.4, (84, 60, 8))
-    pts = [(bx + 50, by + 18.2), (bx + 88, by + 22.0), (bx + 122, by + 27.5),
-           (bx + 158, by + 33.8)]
-    polyline(pts, 3.4, RED)
-    fill_poly([(bx + 158, by + 33.8), (bx + 145, by + 31.5),
-               (bx + 150, by + 24.5)], RED)
+    zig_arrow([(bx + 47, by + 19.8), (bx + 72, by + 24.0),
+               (bx + 86, by + 21.0), (bx + 114, by + 26.8),
+               (bx + 128, by + 23.8), (bx + 150, by + 31.0)],
+              4.4, RED, 11, 5.4)
 
 
 def s_cop(bx, by, bw, bh):
@@ -1328,19 +1359,20 @@ def s_icj(bx, by, bw, bh):
 
 def s_japan(bx, by, bw, bh):
     # One bold subject in two parts: the Japanese flag (hinomaru -
-    # white field, red disc) drawn large at left, and beside it a
-    # clearly RISING inflation chart with a fat arrowhead - prices
-    # quickened to 2.3%, so the line climbs, unmistakably.
+    # white field, red disc) drawn large at left, exactly as in v9,
+    # and beside it a thick red zigzag arrow climbing over a faint
+    # grid - inflation quickened to 2.3%, so the arrow rises with
+    # small dips but a clear net climb, ending in a big up-right
+    # head. Same arrow language as the Bitcoin and sell-off charts.
     fill_rect(bx, by, bw, bh, TINT)
     fill_rect(bx + 8, by + 18, 64, 17, WHITE)
     outline_rect(bx + 8, by + 18, 64, 17, 1.0, (150, 145, 135))
     fill_circle(bx + 40, by + 26.5, 6.3, RED)
-    thick_line(bx + 84, by + 34.6, bx + 180, by + 34.6, 1.4, (120, 110, 95))
-    pts = [(bx + 88, by + 33), (bx + 116, by + 27.5), (bx + 140, by + 30),
-           (bx + 170, by + 20)]
-    polyline(pts, 3.6, INK)
-    fill_poly([(bx + 170, by + 20), (bx + 156, by + 19.6),
-               (bx + 162.5, by + 28.5)], INK)
+    _grid(bx, by, 82, bw - 3, 19.5, 34.5, 13.7, 7.5, (208, 201, 184))
+    zig_arrow([(bx + 88, by + 33.6), (bx + 112, by + 28.6),
+               (bx + 124, by + 31.1), (bx + 146, by + 25.1),
+               (bx + 156, by + 27.6), (bx + 171, by + 22.1)],
+              4.2, RED, 10.5, 5.8)
 
 
 def s_italy(bx, by, bw, bh):
