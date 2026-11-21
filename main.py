@@ -1010,13 +1010,17 @@ draw_text(W - M, 22, "31 STORIES · 7 REGIONS · EVERY ONE DATED "
           align='r')
 fill_rect(M, 28, CW, 1.6, INK)
 
-# Masthead: red calendar box + serif display line
-fill_rect(M, 38, 94, 76, RED)
+# Masthead: red calendar box + serif display line. The box is tall
+# enough that NOV, the 20 and FRI · 2026 each sit clear of the next:
+# NOV baseline 55 (ink 41-55), 20 at size 48 baseline 95 (ink 60-95),
+# FRI baseline 110 (ink 100-110), box 34-118 - gaps >= 4.5 px and
+# padding >= 7 px on every side, nothing touching.
+fill_rect(M, 34, 94, 84, RED)
 draw_text(M + 47, 55, "NOV", 19, WHITE, 'SANS_X', tracking=2.0,
           align='c')
-draw_text(M + 47, 95, "20", 56, WHITE, 'SANS_X', tracking=1.0,
+draw_text(M + 47, 95, "20", 48, WHITE, 'SANS_X', tracking=1.0,
           align='c')
-draw_text(M + 47, 109, "FRI · 2026", 13, WHITE, 'SANS_X', tracking=0.6,
+draw_text(M + 47, 110, "FRI · 2026", 13, WHITE, 'SANS_X', tracking=0.6,
           align='c')
 _MS = fit_size("Friday 20 November 2026", 96, 'SERIF', W - 132 - M - 4,
                0.2)
@@ -1048,8 +1052,11 @@ for _i, (_num, _c1, _c2) in enumerate(FIGS):
     _x = M + _i * _colw
     if _i:
         fill_rect(_x - 9, 154, 1.6, 66, RED)
-    draw_text(_x, 192, _num, fit_size(_num, 40, 'SERIF', _colw - 2,
-              0.2, 30), INK, 'SERIF', tracking=0.2)
+    # Numerals in Open Sans ExtraBold (the model's figure treatment:
+    # a heavy grotesque sans), baseline 190 - ink 163-190, clear of
+    # the header baseline above and ~6 px of air over the captions.
+    draw_text(_x, 190, _num, fit_size(_num, 37, 'SANS_X', _colw - 2,
+              0.2, 30), INK, 'SANS_X', tracking=0.2)
     draw_text(_x, 205, _c1, 11.5, DARK, 'SANS', tracking=0.3)
     draw_text(_x, 219, _c2, 11.5, DARK, 'SANS', tracking=0.3)
 
@@ -1432,7 +1439,7 @@ draw_text(352, 780, "ALSO ON FRIDAY 20 NOVEMBER — 18 MORE STORIES", 19,
           INK, 'SANS_X', tracking=0.5)
 fill_rect(M, 786, CW, 1.0, RULE)
 
-MAPX, MAPY, MAPW, MAPH = M, 794, 308, 152
+MAPX, MAPY, MAPW, MAPH = M, 790, 308, 136
 fill_rect(MAPX, MAPY, MAPW, MAPH, (238, 232, 214))
 outline_rect(MAPX, MAPY, MAPW, MAPH, 1.0, RULE)
 MAPROWS = [
@@ -1490,7 +1497,7 @@ fill_poly([(_sx, _sy - 6), (_sx + 1.8, _sy - 1.8), (_sx + 6, _sy - 1.6),
            (_sx - 3.8, _sy + 5.6), (_sx - 2.6, _sy + 1.2),
            (_sx - 6, _sy - 1.6), (_sx - 1.8, _sy - 1.8)], GOLD)
 draw_text(_sx - 8, _sy + 13.5, "11", 8.5, INK, 'SANS_B', align='c')
-draw_text(MAPX + 2, MAPY + MAPH + 13,
+draw_text(MAPX + 2, MAPY + MAPH + 10,
           "Pins 1-13 as numbered; 11 = Mercury, off map.", 11.5, DARK,
           'SANS', tracking=0.3)
 
@@ -1516,7 +1523,7 @@ ALSO = [
 ]
 for _i, (_n, _txt, _tag) in enumerate(ALSO):
     _colx = 352 if _i < 9 else 684
-    _yy = 806 + (_i % 9) * 18.5
+    _yy = 800 + (_i % 9) * 17
     # One pass per glyph: the number in red, the rest in ink beside it.
     _num = str(_n)
     draw_text(_colx, _yy, _num, 13.5, RED, 'SANS_B', tracking=0.3)
@@ -1525,18 +1532,24 @@ for _i, (_n, _txt, _tag) in enumerate(ALSO):
 
 # How sure strip (wording trimmed so the single line fits its measure
 # on measured metrics - see the containment audit)
-_hx = draw_text(M, 972, "HOW SURE:", 13, INK, 'SANS_B', tracking=0.3)
-draw_text(_hx + 5, 972, "CONFIRMED = two or more outlets or official "
+_hx = draw_text(M, 954, "HOW SURE:", 13, INK, 'SANS_B', tracking=0.3)
+draw_text(_hx + 5, 954, "CONFIRMED = two or more outlets or official "
           "data · REPORTED = one source or an official claim.", 13,
           DARK, 'SANS', tracking=0.3)
 
 # Date check box: red label and ink body are separate single passes -
-# the label is never overdrawn on top of the body text.
-outline_rect(M, 978, CW, 34, 1.3, RED)
+# the label is never overdrawn on top of the body text. The box gives
+# the text real inner padding on all four sides: text starts 10 px in
+# from the left border and wraps 10 px short of the right border, the
+# first line's ink sits ~8 px below the top border (baselines 981/995
+# in a box spanning 962-1007) and the last line's descenders end
+# ~9 px above the bottom border. Room for this comes from the footer
+# stack above: ALSO pitch 17 from y 800 and a shorter map.
+outline_rect(M, 962, CW, 45, 1.3, RED)
 _DC_SIZE = 13
 _DC_LABEL = "DATE CHECK — "
 _DC_LABEL_W = text_width(_DC_LABEL, 15, 'SANS_B', 0.2)
-draw_text(M + 8, 990, "DATE CHECK —", 15, RED, 'SANS_B', tracking=0.2)
+draw_text(M + 10, 981, "DATE CHECK —", 15, RED, 'SANS_B', tracking=0.2)
 _DC_BODY = ("Not Friday news — left out on purpose: Shenzhen declaration, "
             "Anthropic's debut, PIF Tower strike, Bukele filing (Thu 19) "
             "· Fiji & Tonga declarations (Thu) · Denmark-Greenland vote "
@@ -1544,7 +1557,7 @@ _DC_BODY = ("Not Friday news — left out on purpose: Shenzhen declaration, "
             "orbit burn, COP31 text (Sat).")
 _DC_LINES = []
 _DC_CUR = ''
-_DC_MAXW = CW - 16 - _DC_LABEL_W
+_DC_MAXW = CW - 20 - _DC_LABEL_W
 for _wd in _DC_BODY.split(' '):
     _trial = _wd if not _DC_CUR else _DC_CUR + ' ' + _wd
     if text_width(_trial, _DC_SIZE, 'SANS', 0.2) <= _DC_MAXW or not _DC_CUR:
@@ -1552,17 +1565,17 @@ for _wd in _DC_BODY.split(' '):
     else:
         _DC_LINES.append(_DC_CUR)
         _DC_CUR = _wd
-        _DC_MAXW = CW - 16
+        _DC_MAXW = CW - 20
 if _DC_CUR:
     _DC_LINES.append(_DC_CUR)
-_DC_YY = 990
+_DC_YY = 981
 for _li, _ln in enumerate(_DC_LINES[:2]):
-    draw_text(M + 8 + (_DC_LABEL_W if _li == 0 else 0), _DC_YY, _ln,
+    draw_text(M + 10 + (_DC_LABEL_W if _li == 0 else 0), _DC_YY, _ln,
               _DC_SIZE, INK, 'SANS', tracking=0.2)
-    _DC_YY += 15
+    _DC_YY += 14
 
 # Sources line
-draw_text(M, 1020, "Sources: Reuters · AP · BBC · AFP · IMD · Al Jazeera "
+draw_text(M, 1021, "Sources: Reuters · AP · BBC · AFP · IMD · Al Jazeera "
           "· ANSA · Kitco · Farside. All 31 stories are from Friday 20 "
           "November 2026. Original drawings.", 12.5, DARK, 'SANS',
           tracking=0.25)
