@@ -36,6 +36,7 @@ INK = (27, 28, 30)          # near-black ink
 GREY = (105, 98, 88)        # secondary ink
 DARK = (85, 83, 75)         # warm dark grey for captions / micro-labels
 RULE = (199, 189, 167)      # hairlines
+PANEL_LINE = (176, 161, 140)  # firmer panel border (round 19)
 RED = (179, 36, 30)         # the one accent
 BLUE = (46, 78, 120)
 TEAL = (38, 102, 96)
@@ -1121,7 +1122,7 @@ fill_rect(M, 28, CW, 1.6, INK)
 _MS = fit_size("Friday 20 November 2026", 96, 'SERIF_L', CW, 0.2)
 draw_text(M, 100, "Friday 20 November 2026", _MS, INK, 'SERIF_L',
           tracking=0.2)
-fill_rect(M, 121, CW, 1.4, INK)
+fill_rect(M, 121, CW, 1.6, INK)
 
 # Red italic sub-headline naming the four lead stories
 _DEK = ("Russian missiles hit Kyiv's bridges · Cyclone Akvan strikes "
@@ -1129,29 +1130,29 @@ _DEK = ("Russian missiles hit Kyiv's bridges · Cyclone Akvan strikes "
         "a deal")
 draw_text(M, 142, _DEK, fit_size(_DEK, 24, 'SERIF_I', CW, 0.1), RED,
           'SERIF_I', tracking=0.1)
-fill_rect(M, 148, CW, 1.0, INK)
+fill_rect(M, 148, CW, 1.2, INK)
 
 # The day in figures: six big numbers as a proper bordered table
 # - Fatur's order (2026-11-22 03:54 WIB): "angkanya dibuat tabel
 # aja". One row of six cells, each cell holding its numeral over
 # its two-line caption, inside a full INK grid: outer border plus
-# column rules on the true cell boundaries, all at 1.1. The grid
-# is drawn inside the old strip's box - label baseline 163 above
-# (the title stays as-is), region bar at 228 below - so the
-# block's outer height is identical and nothing else on the page
-# moves; the borders are absorbed by re-deriving the text stack
-# from the box: numeral baseline 193.5 (ink 166.5-193.5, comma
-# tails to ~200.5, clear of the caption ascenders at 201.5),
-# caption baselines 209.5 / 221.5 (pitch 12, last descenders to
-# 224.3). Paper clearances to the lines: label 1.5, digits ~1,
-# captions 1.3, region bar 1.3 - tight by necessity (every size
-# is frozen) but no ink touches a line. The column rules are
+# column rules on the true cell boundaries. The column rules are
 # centred on the boundaries (the outer pair flush with the
 # border ends), giving the widest numerals (370,000 / 100,000,
 # 138.7 wide) a symmetric ~11.8 px side clearance - better than
 # the old one-sided red dividers (10.7 / 12.3). Numerals stay
 # Open Sans Bold 37 (the round-13 re-set) and the fit guard
 # (_colw - 24) is unchanged.
+# Round 19 (precision audit): the measured v18 clearances were
+# too tight - numeral ink sat 1.4 px under the top border. The
+# grid is firmer (1.1 -> 1.3) and the stack is re-derived inside
+# a box grown downward (bottom 226.7 -> 229.6, paid for by the
+# region bar moving 228 -> 231 and slimming 20 -> 19): numeral
+# baseline 195.0 (measured ink top 168, 2.2 clear of the
+# border's inner edge), caption baselines 211.0 / 223.0 (pitch
+# 12 kept; comma tails end at 199, ~3.5 clear of the caption
+# ascenders; last descenders end at 225, 3.3 clear of the
+# bottom border's top edge).
 draw_text(M, 163, "THE DAY IN FIGURES", 15, INK, 'SANS_X',
           tracking=1.2)
 FIGS = [
@@ -1162,7 +1163,7 @@ FIGS = [
     ("2.3%", "Japan inflation,", "October CPI"),
     ("118", "Phillips' hundred v", "India, Wellington"),
 ]
-_TT, _TB, _BW = 164.5, 226.7, 1.1   # table top / bottom / weight
+_TT, _TB, _BW = 164.5, 229.6, 1.3   # table top / bottom / weight
 fill_rect(M, _TT, CW, _BW, INK)
 fill_rect(M, _TB - _BW, CW, _BW, INK)
 _colw = CW / 6.0
@@ -1177,12 +1178,12 @@ for _i in range(7):
     fill_rect(_rx, _TT, _BW, _TB - _TT, INK)
 for _i, (_num, _c1, _c2) in enumerate(FIGS):
     _cx = M + (_i + 0.5) * _colw
-    draw_text(_cx, 193.5, _num, fit_size(_num, 37, 'SANS_B',
+    draw_text(_cx, 195.0, _num, fit_size(_num, 37, 'SANS_B',
               _colw - 24, 0.2, 24), INK, 'SANS_B', tracking=0.2,
               align='c')
-    draw_text(_cx, 209.5, _c1, 11.5, DARK, 'SANS', tracking=0.3,
+    draw_text(_cx, 211.0, _c1, 11.5, DARK, 'SANS', tracking=0.3,
               align='c')
-    draw_text(_cx, 221.5, _c2, 11.5, DARK, 'SANS', tracking=0.3,
+    draw_text(_cx, 223.0, _c2, 11.5, DARK, 'SANS', tracking=0.3,
               align='c')
 
 # Region bar: honest counts, summing to 31 - and the total is
@@ -1199,14 +1200,17 @@ REGIONS = [
 _rx = M
 _bounds = []
 for _label, _w, _c in REGIONS:
-    fill_rect(_rx, 228, _w, 20, _c)
-    draw_text(_rx + _w / 2.0, 241.5, _label,
-              fit_size(_label, 14, 'SANS_B', _w - 6, 0.4, 11.5), WHITE,
-              'SANS_B', tracking=0.4, align='c')
+    fill_rect(_rx, 231, _w, 19, _c)
+    # Round 19: one uniform label size - at nominal 14 the
+    # OCEANIA 1 label alone fitted down to 13.75 while the other
+    # seven rendered at 14; all eight now set at 13.75.
+    draw_text(_rx + _w / 2.0, 244.0, _label,
+              fit_size(_label, 13.75, 'SANS_B', _w - 6, 0.4, 11.5),
+              WHITE, 'SANS_B', tracking=0.4, align='c')
     _rx += _w
     _bounds.append(_rx)
 for _bx in _bounds[:-1]:
-    fill_rect(_bx - 1, 228, 2, 20, PAPER)
+    fill_rect(_bx - 1, 231, 2, 19, PAPER)
 
 # ------------------------------------------------------------- hero scenes
 def _stars(bx, by, bw, bh, n, col):
@@ -1468,33 +1472,50 @@ def label_band(bx, by, bw, bh, label, kicker, col, lsize, table=None,
         # pill at its right end - a paper chip with ink text. The
         # label is fitted against the chip, so band, label and
         # pill are re-set together, never pasted over each other.
+        # Round 19: the band geometry is recomputed so every
+        # label fits at the full 13.0 - in v18 COP31: NO DEAL
+        # alone fitted down to 12.5. The chip padding drops
+        # 10 -> 8, the label's measure runs to 3 px short of
+        # the chip, and the label tracking drops 0.5 -> 0.4
+        # (the draw below); measured: the widest label
+        # (COP31: NO DEAL, 112.8 at 13.0) now fits its 114.8
+        # measure, so all ten labels render at one size.
         _chipw = 0.0
         if pill:
-            _chipw = text_width(pill, 7.5, 'SANS_B', 0.2) + 10
+            _chipw = text_width(pill, 7.5, 'SANS_B', 0.2) + 8
         lsize = fit_size(label, lsize, 'SANS_X',
-                         bw - 14 - (_chipw + 6 if pill else 0), 0.5,
+                         bw - 18 - (_chipw if pill else 0), 0.4,
                          12.0)
         if pill:
             fill_rect(bx + bw - 7 - _chipw, by + 3, _chipw, 11, PAPER)
             draw_text(bx + bw - 7 - _chipw / 2.0, by + 10.8, pill,
                       7.5, INK, 'SANS_B', tracking=0.2, align='c')
     draw_text(bx + 8, by + bh - 4.5, label, lsize, WHITE, 'SANS_X',
-              tracking=0.5)
+              tracking=0.4)
 
 
 def hero(x, y, w, h, scene, label, kicker, band_col, region, rcol,
          headline, standfirst, table=None):
     fill_rect(x, y, w, h, PANEL)
-    outline_rect(x, y, w, h, 1.1, RULE)
+    outline_rect(x, y, w, h, 1.3, PANEL_LINE)
     bx, by, bw, bh = x + 1, y + 1, w - 2, 98
     scene(bx, by, bw, bh)
-    label_band(bx, by, bw, 24, label, kicker, band_col, 21, table)
+    # Round 19: one uniform band-label size across the heroes -
+    # in v18 KYIV and AI SELL-OFF rendered at 21 while CYCLONE
+    # AKVAN fitted down to 19.75; 19.75 (the tightest fit) is
+    # now the shared nominal, so all three bands match.
+    label_band(bx, by, bw, 24, label, kicker, band_col, 19.75, table)
     # Round 16: the kicker's compressed certainty code becomes a
     # visible pill at the row's right end. The kicker is re-set
     # to pay for it - nominal 12.8 (was 14.5) against a measure
     # narrowed by the pill's width, uniform across all three
     # heroes, so the row's rhythm stays even.
-    draw_region(x + 9, y + 113, region, w - 18 - 72, size=12.8,
+    # Round 19: the measure now uses the pill's true width
+    # (58.8 + ~7 gap = 66, was a padded 72) - at 72 the longest
+    # kicker (hero 1, 230.7 wide at 12.8) fitted down to 12.55
+    # while the other two rendered at 12.8; all three now fit
+    # at the full 12.8.
+    draw_region(x + 9, y + 113, region, w - 18 - 66, size=12.8,
                 floor=12.0, color=rcol, tracking=0.9)
     hero_pill(x + w - 9, y, "CONFIRMED")
     # Round 15: the art band grows 76 -> 98 (visible strip 52 -> 74,
@@ -1809,7 +1830,7 @@ def small_panel(x, y, w, h, scene, label, band_col, region, headline,
                 bpitch=15, bstart=114.5, hfont='SERIF', bandh=44,
                 ky=56, pill=None):
     fill_rect(x, y, w, h, PANEL)
-    outline_rect(x, y, w, h, 1.1, RULE)
+    outline_rect(x, y, w, h, 1.3, PANEL_LINE)
     bx, by, bw, bh = x + 1, y + 1, w - 2, bandh
     scene(bx, by, bw, bh)
     # Round 16: the band label is re-set at 13 (was 15.5) so the
@@ -1859,7 +1880,7 @@ def _px(i):
 # Panel 4 is custom: its body copy is set as one wrapped block.
 def btc_panel(x, y, w, h):
     fill_rect(x, y, w, h, PANEL)
-    outline_rect(x, y, w, h, 1.1, RULE)
+    outline_rect(x, y, w, h, 1.3, PANEL_LINE)
     bx, by, bw, bh = x + 1, y + 1, w - 2, 44
     s_btc(bx, by, bw, bh)
     label_band(bx, by, bw, 17, "BITCOIN < $60K", "", RED, 13.0,
@@ -1936,7 +1957,7 @@ small_panel(_px(4), PY2, PW, PH2, s_cricket, "PHILLIPS: 118", GREEN,
 draw_text(M, 784, "WHERE IT HAPPENED", 19, INK, 'SANS_X', tracking=0.6)
 draw_text(352, 784, "ALSO ON FRIDAY 20 NOVEMBER — 18 MORE STORIES", 19,
           INK, 'SANS_X', tracking=0.5)
-fill_rect(M, 790, CW, 1.0, RULE)
+fill_rect(M, 790, CW, 1.3, INK)
 
 MAPX, MAPY, MAPW, MAPH = M, 794, 308, 124
 # Round 17 (Fatur, 2026-11-22 ~03:48 WIB): the map takes Earth's
@@ -2151,7 +2172,7 @@ draw_text(_hx + 5, 954, "CONFIRMED = two or more outlets or official "
 # in a box spanning 962-1007) and the last line's descenders end
 # ~9 px above the bottom border. Room for this comes from the footer
 # stack above: ALSO pitch 17 from y 804 and a shorter map.
-outline_rect(M, 962, CW, 45, 1.3, RED)
+outline_rect(M, 962, CW, 45, 1.5, RED)
 # Round 16: the box becomes two segments, split at the text's own
 # "Not yet:" boundary - the older-news exclusions on the left,
 # the not-yet-happened items on the right, divided by a red rule.
@@ -2187,12 +2208,13 @@ _dc_segment(M + 10, 768, "DATE CHECK — ", 15,
             "Bukele filing (Thu 19) · Fiji & Tonga declarations "
             "(Thu) · Denmark-Greenland vote (Thu) · Kenya Ebola "
             "discharge (11 Nov).")
-fill_rect(M + 786, 968, 1.0, 33, RED)
+fill_rect(M + 785.85, 968, 1.3, 33, RED)
 _dc_segment(M + 794, 176, "Not yet: ", 13,
             "Mercury orbit burn, COP31 final text (Sat).")
 
-# Sources line
-draw_text(M, 1020, "Sources: Reuters · AP · BBC · AFP · IMD · Al Jazeera "
+# Sources line. Round 19: baseline 1020 -> 1019 - the v18 ink
+# reached y 1022, 2 px from the page edge; it now ends ~1021.
+draw_text(M, 1019, "Sources: Reuters · AP · BBC · AFP · IMD · Al Jazeera "
           "· ANSA · Kitco · Farside. All 31 stories are from Friday 20 "
           "November 2026. Original drawings.", 12.5, DARK, 'SANS',
           tracking=0.25)
