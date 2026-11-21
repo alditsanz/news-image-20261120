@@ -1031,8 +1031,8 @@ fill_rect(M, 121, CW, 1.4, INK)
 
 # Red italic sub-headline naming the four lead stories
 _DEK = ("Russian missiles hit Kyiv's bridges · Cyclone Akvan strikes "
-        "India · AI sell-off sinks world markets · Bitcoin breaks "
-        "$60,000")
+        "India · AI sell-off sinks Asia's markets · UK and EU seal "
+        "a deal")
 draw_text(M, 142, _DEK, fit_size(_DEK, 24, 'SERIF_I', CW, 0.1), RED,
           'SERIF_I', tracking=0.1)
 fill_rect(M, 148, CW, 1.0, INK)
@@ -1048,10 +1048,10 @@ draw_text(M, 163, "THE DAY IN FIGURES", 15, INK, 'SANS_X',
 FIGS = [
     ("3", "bridges hit", "in Kyiv"),
     ("370,000", "evacuated for", "Cyclone Akvan"),
-    ("-5.28%", "Nasdaq, Friday's", "close in New York"),
-    ("$58,678", "Bitcoin's low", "on Friday"),
-    ("144>80", "COP31 draft cut,", "pages, in Antalya"),
-    ("5.1bn", "pounds a year,", "UK-EU food deal"),
+    ("-6.2%", "Taiwan's Taiex", "at Friday's close"),
+    ("100,000", "youth visas a year,", "in the UK-EU deal"),
+    ("2.3%", "Japan inflation,", "October CPI"),
+    ("118", "Phillips' hundred v", "India, Wellington"),
 ]
 _colw = CW / 6.0
 for _i, (_num, _c1, _c2) in enumerate(FIGS):
@@ -1061,8 +1061,10 @@ for _i, (_num, _c1, _c2) in enumerate(FIGS):
     # Numerals in Open Sans ExtraBold (the model's figure treatment:
     # a heavy grotesque sans), baseline 193 - ink 166-193, comma
     # tails to ~196, clear of the label above and the captions below.
-    draw_text(_x, 193, _num, fit_size(_num, 37, 'SANS_X', _colw - 2,
-              0.2, 30), INK, 'SANS_X', tracking=0.2)
+    # Fitted to _colw - 13 so the widest numerals (370,000, $58,678)
+    # stop >= 4 px short of the next cell's divider at _colw - 9.
+    draw_text(_x, 193, _num, fit_size(_num, 37, 'SANS_X', _colw - 13,
+              0.2, 24), INK, 'SANS_X', tracking=0.2)
     draw_text(_x, 209.5, _c1, 11.5, DARK, 'SANS', tracking=0.3)
     draw_text(_x, 222.5, _c2, 11.5, DARK, 'SANS', tracking=0.3)
 
@@ -1175,9 +1177,41 @@ def scene_markets(bx, by, bw, bh):
     thick_line(cx - 4.2, cy + 3.4, cx + 4.2, cy + 3.4, 1.5, (84, 60, 8))
 
 
-def label_band(bx, by, bw, bh, label, kicker, col, lsize):
+def label_band(bx, by, bw, bh, label, kicker, col, lsize, table=None):
     fill_rect(bx, by, bw, bh, col)
-    if kicker:
+    if table:
+        # A real two-column mini table at the right of the band
+        # (the sell-off hero's Asian falls): city names left-aligned
+        # within each column, values right-aligned, a 5px gutter
+        # between name and value and 16px between the columns.
+        # Rows sit at baselines 11.5 / 21.5 inside the 24px band -
+        # ink spans ~4..21.5, clear of the band edges; the label is
+        # fitted against the table's left edge.
+        ksize = 10.5
+        city_a = max(text_width(r[0], ksize, 'SANS_B', 0.3)
+                     for r in table)
+        val_a = max(text_width(r[1], ksize, 'SANS_B', 0.3)
+                    for r in table)
+        city_b = max(text_width(r[2], ksize, 'SANS_B', 0.3)
+                     for r in table)
+        val_b = max(text_width(r[3], ksize, 'SANS_B', 0.3)
+                    for r in table)
+        col_a = city_a + 5 + val_a
+        col_b = city_b + 5 + val_b
+        tab_x = bx + bw - 7 - (col_a + 16 + col_b)
+        lsize = fit_size(label, lsize, 'SANS_X', tab_x - bx - 18,
+                         0.5, 12.0)
+        for i, (ca, va, cb, vb) in enumerate(table):
+            yy = by + 11.5 + i * 10
+            draw_text(tab_x, yy, ca, ksize, WHITE, 'SANS_B',
+                      tracking=0.3)
+            draw_text(tab_x + col_a, yy, va, ksize, WHITE, 'SANS_B',
+                      tracking=0.3, align='r')
+            draw_text(tab_x + col_a + 16, yy, cb, ksize, WHITE,
+                      'SANS_B', tracking=0.3)
+            draw_text(bx + bw - 7, yy, vb, ksize, WHITE, 'SANS_B',
+                      tracking=0.3, align='r')
+    elif kicker:
         ksize = lsize - 7.5
         kw = text_width(kicker, ksize, 'SANS_B', 0.3)
         lsize = fit_size(label, lsize, 'SANS_X', bw - kw - 20, 0.5, 12.0)
@@ -1190,12 +1224,12 @@ def label_band(bx, by, bw, bh, label, kicker, col, lsize):
 
 
 def hero(x, y, w, h, scene, label, kicker, band_col, region, rcol,
-         headline, standfirst):
+         headline, standfirst, table=None):
     fill_rect(x, y, w, h, PANEL)
     outline_rect(x, y, w, h, 1.1, RULE)
     bx, by, bw, bh = x + 1, y + 1, w - 2, 76
     scene(bx, by, bw, bh)
-    label_band(bx, by, bw, 24, label, kicker, band_col, 21)
+    label_band(bx, by, bw, 24, label, kicker, band_col, 21, table)
     draw_region(x + 9, y + 92, region, w - 18, size=14.5, floor=12.5,
                 color=rcol, tracking=0.9)
     # Shared hero rhythm: headline baselines y+119 / y+153 (pitch 34,
@@ -1210,23 +1244,25 @@ def hero(x, y, w, h, scene, label, kicker, band_col, region, rcol,
 
 HY = 254
 HW = (CW - 20) / 3.0
-hero(M, HY, HW, 214, scene_kyiv, "KYIV", "OVERNIGHT", NAVY,
+hero(M, HY, HW, 214, scene_kyiv, "KYIV", "3 BRIDGES HIT", NAVY,
      "1 · EUROPE · WAR · REUTERS/BBC · C", RED,
-     "Russia fires 110+ missiles at Kyiv",
-     "400 drones joined it; three Dnipro bridges were hit, eight people "
-     "killed, power and water cut.")
+     "Russian missiles hit three Kyiv bridges",
+     "Overnight barrage of ~110 missiles and 400 drones killed at "
+     "least 8 people; power and water cut in capital.")
 hero(M + HW + 10, HY, HW, 214, scene_akvan, "CYCLONE AKVAN",
-     "07:30 · GOPALPUR", RED,
+     "LANDFALL · 07:30", RED,
      "2 · ASIA · WEATHER · IMD · C", TEAL,
      "Cyclone Akvan comes ashore in Odisha",
-     "Winds of 70-80 km/h, gusting to 90, crossed near Gopalpur after "
-     "370,000 people moved to shelters.")
+     "Winds 70-80 km/h, gusting to 90, crossed near Gopalpur after "
+     "370,000 moved to shelters. No deaths reported.")
 hero(M + 2 * HW + 20, HY, HW, 214, scene_markets, "AI SELL-OFF",
-     "FRIDAY'S CLOSE", NAVY,
+     "", NAVY,
      "3 · WORLD · MARKETS · AP · C", BLUE,
      "AI sell-off sinks Asia, then Wall Street",
-     "Taipei fell 6.2%, Tokyo 4.8%, Seoul 5.2% as chip stocks slid; "
-     "New York's Nasdaq then lost 5.28%.")
+     "Chip stocks slid across Asia; Nasdaq then lost 5.28%. Bitcoin "
+     "broke below $60,000.",
+     table=(("TAIPEI", "-6.2%", "SEOUL", "-5.2%"),
+            ("TOKYO", "-4.8%", "HK", "-1.9%")))
 
 # ------------------------------------------------------------ panel scenes
 def s_btc(bx, by, bw, bh):
@@ -1387,7 +1423,9 @@ def s_cricket(bx, by, bw, bh):
     fill_rect(bx + 152, by + 19, 15, 2, (240, 230, 200))
 
 
-def small_panel(x, y, w, h, scene, label, band_col, region, headline, body):
+def small_panel(x, y, w, h, scene, label, band_col, region, headline,
+                body, hsize=22, hpitch=25, hstart=70, bsize=13.5,
+                bpitch=15.5, bstart=113.5):
     fill_rect(x, y, w, h, PANEL)
     outline_rect(x, y, w, h, 1.1, RULE)
     bx, by, bw, bh = x + 1, y + 1, w - 2, 36
@@ -1400,11 +1438,13 @@ def small_panel(x, y, w, h, scene, label, band_col, region, headline, body):
     # kicker is fitted differently from another's), headline
     # baselines y+70 / y+95 (pitch 25, 1.6x cap height), body
     # always starts at y+113.5 - driven by these constants, never
-    # by how the headline happened to wrap.
-    draw_wrapped(x + 7, y + 70, headline, 22, INK, 'SERIF',
-                 w - 14, 25)
-    draw_wrapped(x + 7, y + 113.5, body, 13.5, INK, 'SANS', w - 14,
-                 15.5)
+    # by how the headline happened to wrap. Panels whose copy runs
+    # longer pass fitted h*/b* values so the text block is re-set
+    # to fill its panel evenly instead of overflowing it.
+    draw_wrapped(x + 7, y + hstart, headline, hsize, INK, 'SERIF',
+                 w - 14, hpitch)
+    draw_wrapped(x + 7, y + bstart, body, bsize, INK, 'SANS', w - 14,
+                 bpitch)
 
 
 PY1, PY2, PH, PH2 = 472, 624, 144, 136
@@ -1415,7 +1455,7 @@ def _px(i):
     return M + i * (PW + 8)
 
 
-# Panel 4 is custom: the BlackRock IBIT outflow is a named figure row.
+# Panel 4 is custom: its body copy is set as one wrapped block.
 def btc_panel(x, y, w, h):
     fill_rect(x, y, w, h, PANEL)
     outline_rect(x, y, w, h, 1.1, RULE)
@@ -1426,28 +1466,33 @@ def btc_panel(x, y, w, h):
                 size=10.5, floor=10.5)
     draw_wrapped(x + 7, y + 70, "Bitcoin breaks below $60,000", 22, INK,
                  'SERIF', w - 14, 25)
-    draw_text(x + 7, y + 114, "IBIT -$541.1M",
-              fit_size("IBIT -$541.1M", 21, 'SANS_B', w - 14, 0.2, 16),
-              RED, 'SANS_B', tracking=0.2)
-    draw_text(x + 7, y + 126, "Biggest-ever one-day outflow", 12, DARK,
-              'SANS', tracking=0.3)
-    draw_text(x + 7, y + 137.5, "on record (Thu 19), Farside", 12, DARK,
-              'SANS', tracking=0.3)
+    # Body re-set as one wrapped block at the grid's body size:
+    # three even lines (baselines 111 / 125 / 139, pitch 14) fill
+    # the panel under the two headline lines.
+    draw_wrapped(x + 7, y + 111, "Record one-day outflow of $541.1M "
+                 "(BlackRock-led). Price at $58,678.", 13.5, INK,
+                 'SANS', w - 14, 14)
 
 
 btc_panel(_px(0), PY1, PW, PH)
 small_panel(_px(1), PY1, PW, PH, s_cop, "COP31: NO DEAL", NAVY,
             "5 · WORLD · CLIMATE · AFP/AP · C",
             "COP31 ends with no deal",
-            "Draft axed fossil fuels and the $120bn target.")
+            "Draft axed fossil fuels and the $120bn target. Final "
+            "text expected Saturday.",
+            bsize=12.5, bpitch=14, bstart=111)
 small_panel(_px(2), PY1, PW, PH, s_ukeu, "UK-EU DEAL", BLUE,
             "6 · EUROPE · RESET · REUTERS · C",
             "UK-EU 'reset' deal sealed",
-            "Food checks eased; carbon markets linked.")
+            "100,000 youth visas/year, food trade eased, carbon "
+            "markets linked.",
+            bsize=12.5, bpitch=14, bstart=111)
 small_panel(_px(3), PY1, PW, PH, s_icj, "WORLD COURT", INK,
             "7 · ASIA · JUSTICE · REUTERS · C",
             "Myanmar rejects genocide ruling",
-            "First ever: a state responsible for genocide.")
+            "First ever: a state found responsible for genocide by "
+            "ICJ. Myanmar calls it unfair.",
+            bsize=12.5, bpitch=14, bstart=111)
 small_panel(_px(4), PY1, PW, PH, s_japan, "JAPAN: +2.3%", RED,
             "8 · ASIA · ECONOMY · OFFICIAL · C",
             "Japan inflation rises to 2.3%",
@@ -1455,15 +1500,21 @@ small_panel(_px(4), PY1, PW, PH, s_japan, "JAPAN: +2.3%", RED,
 small_panel(_px(0), PY2, PW, PH2, s_italy, "ITALY: STRIKE", RED,
             "9 · EUROPE · LABOUR · ANSA · C",
             "General strike across Italy",
-            "24-hour CGIL stoppage marched in 100+ cities.")
+            "24-hour CGIL stoppage; marches in 100+ cities over "
+            "budget.",
+            bsize=11.5)
 small_panel(_px(1), PY2, PW, PH2, s_gold, "GOLD < $3,600", INK,
             "10 · WORLD · MARKETS · KITCO · C",
             "Gold breaks under $3,600",
-            "A 14-month low; silver also slid under $42.")
+            "14-month low; silver also slid under $42 amid "
+            "risk-off move.",
+            bsize=12.5)
 small_panel(_px(2), PY2, PW, PH2, s_mercury, "MERCURY", NAVY,
             "11 · WORLD · SPACE · ESA · C",
-            "BepiColombo reaches Mercury",
-            "8 years out; only the 2nd craft to orbit it.")
+            "BepiColombo reaches Mercury — orbit burn Saturday",
+            "8 years out; only the 2nd craft to orbit the planet.",
+            hsize=18, hpitch=20, hstart=65, bsize=12.5, bpitch=13,
+            bstart=118.5)
 small_panel(_px(3), PY2, PW, PH2, s_sudan, "SUDAN: DRONE", BROWN,
             "12 · AFRICA · WAR · DABANGA · R",
             "Sudan: drone kills 10",
@@ -1585,7 +1636,7 @@ def _proj(lon, lat):
             MAPY + (84 - lat) / 144.0 * MAPH)
 
 
-def _pin(n, lon, lat, dx=0.0, dy=0.0):
+def _pin(n, lon, lat, dx=0.0, dy=0.0, col=RED, num=WHITE):
     px, py = _proj(lon, lat)
     if dx or dy:
         # The true point is marked with a dot; the numbered disc sits in
@@ -1594,29 +1645,35 @@ def _pin(n, lon, lat, dx=0.0, dy=0.0):
         thick_line(px, py, px + dx, py + dy, 0.8, DARK)
         fill_circle(px, py, 1.5, DARK)
         px, py = px + dx, py + dy
-    fill_circle(px, py, 4.6, RED)
-    draw_text(px, py + 2.7, str(n), 8 if n < 10 else 7, WHITE, 'SANS_B',
+    fill_circle(px, py, 4.6, col)
+    draw_text(px, py + 2.7, str(n), 8 if n < 10 else 7, num, 'SANS_B',
               align='c')
 
 
-_pin(1, 30.5, 50.4)              # Kyiv, Ukraine
-_pin(2, 84.9, 19.3)              # Gopalpur, Odisha, India
-_pin(3, 121.6, 25.0)             # AI sell-off: Taipei, the Asia epicentre
-_pin(4, -74.0, 40.7)             # Bitcoin: New York, the US market
-_pin(5, 30.7, 36.9)              # Antalya, Turkiye (COP31)
-_pin(6, 4.35, 50.85, 11, -10)    # Brussels (UK-EU deal); disc led NE
-_pin(7, 96.2, 16.8, 6, 4)        # Myanmar: Yangon (World Court reaction)
-_pin(8, 139.7, 35.7)             # Tokyo, Japan
-_pin(9, 12.5, 41.9)              # Rome, Italy
-_pin(10, -0.13, 51.5, -10, -11)  # Gold: London (LBMA); disc led NW
-_pin(12, 30.0, 11.5)             # South Kordofan, Sudan
-_pin(13, 174.8, -41.3, -11, 0)   # Wellington, NZ; disc led W off the rim
-# 11 is off the map: a star at the top-right corner of the map box.
+# Pin colours follow the region strip's colour logic, so a pin
+# matches its story's region: EUROPE blue, ASIA red, AMERICAS
+# teal, AFRICA gold, MIDDLE EAST brown, OCEANIA green, WORLD ink.
+# (The gold Africa disc takes an ink numeral - white on gold would
+# not read at this size.)
+_pin(1, 30.5, 50.4, col=BLUE)              # Kyiv, Ukraine
+_pin(2, 84.9, 19.3, col=RED)               # Gopalpur, Odisha, India
+_pin(3, 121.6, 25.0, col=INK)              # AI sell-off: Taipei
+_pin(4, -74.0, 40.7, col=INK)              # Bitcoin: New York
+_pin(5, 30.7, 36.9, col=INK)               # Antalya, Turkiye (COP31)
+_pin(6, 4.35, 50.85, 11, -10, col=BLUE)    # Brussels; disc led NE
+_pin(7, 96.2, 16.8, 6, 4, col=RED)         # Myanmar: Yangon
+_pin(8, 139.7, 35.7, col=RED)              # Tokyo, Japan
+_pin(9, 12.5, 41.9, col=BLUE)              # Rome, Italy
+_pin(10, -0.13, 51.5, -10, -11, col=INK)   # Gold: London; disc led NW
+_pin(12, 30.0, 11.5, col=GOLD, num=INK)    # South Kordofan, Sudan
+_pin(13, 174.8, -41.3, -11, 0, col=GREEN)  # Wellington, NZ; disc led W
+# 11 is off the map: a star at the top-right corner of the map
+# box, in WORLD ink like the other world pins.
 _sx, _sy = MAPX + MAPW - 12, MAPY + 10
 fill_poly([(_sx, _sy - 6), (_sx + 1.8, _sy - 1.8), (_sx + 6, _sy - 1.6),
            (_sx + 2.6, _sy + 1.2), (_sx + 3.8, _sy + 5.6), (_sx, _sy + 2.6),
            (_sx - 3.8, _sy + 5.6), (_sx - 2.6, _sy + 1.2),
-           (_sx - 6, _sy - 1.6), (_sx - 1.8, _sy - 1.8)], GOLD)
+           (_sx - 6, _sy - 1.6), (_sx - 1.8, _sy - 1.8)], INK)
 draw_text(_sx - 8, _sy + 13.5, "11", 8.5, INK, 'SANS_B', align='c')
 draw_text(MAPX + 2, MAPY + MAPH + 10,
           "Pins 1-13 as numbered; 11 = Mercury, off map.", 11.5, DARK,
@@ -1627,7 +1684,7 @@ ALSO = [
     (15, "Gaza: raid ends, troops withdraw", "R"),
     (16, "Yongbyon: IAEA sees uranium growth", "R"),
     (17, "Poland: Russian missile on its soil", "R"),
-    (18, "Kyiv says 79 cruise missiles downed", "R"),
+    (18, "Kyiv: says 79 cruise missiles downed", "R"),
     (19, "IMF: world debt nears 100% of GDP", "R"),
     (20, "Dhaka: violence pre-Hasina return", "R"),
     (21, "Brazil: Raoni land recognised", "R"),
@@ -1671,11 +1728,11 @@ _DC_SIZE = 13
 _DC_LABEL = "DATE CHECK — "
 _DC_LABEL_W = text_width(_DC_LABEL, 15, 'SANS_B', 0.2)
 draw_text(M + 10, 981, "DATE CHECK —", 15, RED, 'SANS_B', tracking=0.2)
-_DC_BODY = ("Not Friday news — left out on purpose: Shenzhen declaration, "
+_DC_BODY = ("Not Friday news left out on purpose: Shenzhen declaration, "
             "Anthropic's debut, PIF Tower strike, Bukele filing (Thu 19) "
             "· Fiji & Tonga declarations (Thu) · Denmark-Greenland vote "
             "(Thu) · Kenya Ebola discharge (11 Nov). Not yet: Mercury "
-            "orbit burn, COP31 text (Sat).")
+            "orbit burn, COP31 final text (Sat).")
 _DC_LINES = []
 _DC_CUR = ''
 _DC_MAXW = CW - 20 - _DC_LABEL_W
